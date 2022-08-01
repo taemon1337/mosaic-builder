@@ -1,0 +1,65 @@
+#!/bin/bash
+
+WD=$(dirname "$(readlink -f -- "$0")")
+PROJECT_NAME=$(basename "${WD}")
+DEV_IMAGE=${PROJECT_NAME}-dev
+PROD_IMAGE=${PROJECT_NAME}-prod
+UIDIR=${WD}/ui
+DOCKER_PORTS="-p 5173:5173 -p 24678:24678"
+DOCKER_VOLS="-v ${PWD}:${PWD} -w ${PWD}"
+DOCKER_USER="--user $(id -u):$(id -g)"
+
+_help() {
+  echo "$0"
+  echo "Actions:"
+  echo "  dev"
+  echo "    exec"
+  echo "    build"
+  echo "Options:"
+  echo ""
+}
+
+_dev() {
+  case "$1" in
+    build)
+      shift
+      echo "Building dev docker image..."
+      docker buildx build -f ${UIDIR}/Dockerfile.dev -t ${DEV_IMAGE} ${UIDIR}
+      ;;
+    exec)
+      shift
+      docker run --rm -it ${DOCKER_USER} ${DOCKER_VOLS} ${DOCKER_PORTS} ${DEV_IMAGE} bash
+      ;;
+    start)
+      shift
+      cd ${UIDIR}
+      yarn dev --host 0.0.0.0
+      ;;
+  esac
+}
+
+_main() {
+  case "$1" in
+    dev*)
+      shift
+      _dev "${@}"
+      ;;
+    *)
+      _help;;
+  esac
+}
+
+args=()
+while [[ $# -gt 0 ]]; do
+  key="$1"
+  case "$key" in
+    *)
+      args+=("$1")
+      shift
+      ;;
+  esac
+done
+
+_main "${args[@]}"
+exit 0
+
