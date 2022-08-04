@@ -3,8 +3,12 @@
 WD=$(dirname "$(readlink -f -- "$0")")
 PROJECT_NAME=$(basename "${WD}")
 DEV_IMAGE=${PROJECT_NAME}-dev
+SERVER_IMAGE=${PROJECT_NAME}-server
 PROD_IMAGE=${PROJECT_NAME}-prod
 UIDIR=${WD}/ui
+SERVERDIR=${WD}/server
+SERVER_PORTS="-p 3000:3000"
+DOCKER_NET="devnet"
 DOCKER_PORTS="-p 5173:5173 -p 24678:24678"
 DOCKER_VOLS="-v ${PWD}:${PWD} -w ${PWD}"
 DOCKER_USER="--user $(id -u):$(id -g)"
@@ -12,14 +16,24 @@ DOCKER_USER="--user $(id -u):$(id -g)"
 _help() {
   echo "$0"
   echo "Actions:"
-  echo "  dev"
+  echo "  ui"
+  echo "    exec"
+  echo "    build"
+  echo "  server"
   echo "    exec"
   echo "    build"
   echo "Options:"
   echo ""
 }
 
-_dev() {
+_setup() {
+  if ! docker network ls | grep -q "${DOCKER_NET}"; then
+    echo "[INFO] creating docker network ${DOCKER_NET}"
+    docker network create "${DOCKER_NET}"
+  fi
+}
+
+_ui() {
   case "$1" in
     build)
       shift
@@ -28,7 +42,8 @@ _dev() {
       ;;
     exec)
       shift
-      docker run --rm -it ${DOCKER_USER} ${DOCKER_VOLS} ${DOCKER_PORTS} ${DEV_IMAGE} bash
+      _setup
+      docker run --rm -it --name ui --net ${DOCKER_NET} ${DOCKER_USER} ${DOCKER_VOLS} ${DOCKER_PORTS} ${DEV_IMAGE} bash
       ;;
     start)
       shift
@@ -38,11 +53,35 @@ _dev() {
   esac
 }
 
+_server() {
+  case "$1" in
+    build)
+      shift
+      echo "Building server docker image..."
+      docker buildx build -f ${SERVERDIR}/Dockerfile.dev -t ${SERVER_IMAGE} ${SERVERDIR}
+      ;;
+    exec)
+      shift
+      _setup
+      docker run --rm -it --name server --net ${DOCKER_NET} ${DOCKER_USER} ${DOCKER_VOLS} ${SERVER_PORTS} ${SERVER_IMAGE} bash
+      ;;
+    start)
+      shift
+      cd ${SERVERDIR}
+      node index.js
+      ;;
+  esac
+}
+
 _main() {
   case "$1" in
-    dev*)
+    ui*)
       shift
-      _dev "${@}"
+      _ui "${@}"
+      ;;
+    serve*)
+      shift
+      _server "${@}"
       ;;
     *)
       _help;;
