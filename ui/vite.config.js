@@ -6,6 +6,7 @@ const config = {
   server: {
     proxy: {
       '/auth': 'http://server:3000',
+      '/api': 'http://server:3000',
     },
   },
 };

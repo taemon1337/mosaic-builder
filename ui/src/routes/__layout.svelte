@@ -1,11 +1,19 @@
 <script>
   import { onMount } from "svelte";
+  import { page } from '$app/stores';
   import "../app.css";
+  import { readable } from 'svelte/store';
   import { globals } from '$lib/globals';
   import { Me } from '$lib/api.js';
   import { SignedIn, Picture } from '../store/user.js';
 
   let showingUserMenu = false;
+  let lsidehome = "mt-10 mx-auto max-w-7xl px-4 sm:mt-12 sm:px-6 md:mt-16 lg:mt-20 lg:px-8 xl:mt-28";
+  let lsidefull = "mt-10 mx-auto max-w-7xl px-4 sm:mt-12 sm:px-6 md:mt-16 lg:mt-20 lg:px-8 xl:mt-28";
+  let rside = "lg:absolute lg:inset-y-0 lg:right-0 lg:w-1/2";
+
+  $: homepage = $page.url.pathname == '/'
+  $: lside = homepage ? "mt-10 mx-auto max-w-7xl px-4 sm:mt-12 sm:px-6 md:mt-16 lg:mt-20 lg:px-8 xl:mt-28" : "mt-10 mx-auto"
 
   onMount(async () => { Me() });
 </script>
@@ -50,19 +58,13 @@
                 </div>
                 <div class="flex-1 flex items-center justify-center sm:items-stretch sm:justify-start">
                   <div class="flex-shrink-0 flex items-center">
-                    <img class="block lg:hidden h-8 w-auto" src="https://tailwindui.com/img/logos/workflow-mark-indigo-500.svg" alt="Workflow">
-                    <img class="hidden lg:block h-8 w-auto" src="https://tailwindui.com/img/logos/workflow-logo-indigo-500-mark-white-text.svg" alt="Workflow">
+                    <img class="h-8 w-auto" src="https://upload.wikimedia.org/wikipedia/commons/thumb/6/60/Google_Photos_icon_%282015-2020%29.svg/1200px-Google_Photos_icon_%282015-2020%29.svg.png" alt="">
                   </div>
                   <div class="hidden sm:block sm:ml-6">
                     <div class="flex space-x-4">
                       <!-- Current: "bg-gray-900 text-white", Default: "text-gray-300 hover:bg-gray-700 hover:text-white" -->
-                      <a href="#" class="bg-gray-900 text-white px-3 py-2 rounded-md text-sm font-medium" aria-current="page">Dashboard</a>
+                      <a href="/build" class="bg-gray-900 text-white px-3 py-2 rounded-md text-sm font-medium" aria-current="page">Get Started</a>
 
-                      <a href="#" class="text-gray-300 hover:bg-gray-700 hover:text-white px-3 py-2 rounded-md text-sm font-medium">Team</a>
-
-                      <a href="#" class="text-gray-300 hover:bg-gray-700 hover:text-white px-3 py-2 rounded-md text-sm font-medium">Projects</a>
-
-                      <a href="#" class="text-gray-300 hover:bg-gray-700 hover:text-white px-3 py-2 rounded-md text-sm font-medium">Calendar</a>
                     </div>
                   </div>
                 </div>
@@ -107,13 +109,7 @@
             <div class="sm:hidden" id="mobile-menu">
               <div class="px-2 pt-2 pb-3 space-y-1">
                 <!-- Current: "bg-gray-900 text-white", Default: "text-gray-300 hover:bg-gray-700 hover:text-white" -->
-                <a href="#" class="bg-gray-900 text-white block px-3 py-2 rounded-md text-base font-medium" aria-current="page">Dashboard</a>
-
-                <a href="#" class="text-gray-300 hover:bg-gray-700 hover:text-white block px-3 py-2 rounded-md text-base font-medium">Team</a>
-
-                <a href="#" class="text-gray-300 hover:bg-gray-700 hover:text-white block px-3 py-2 rounded-md text-base font-medium">Projects</a>
-
-                <a href="#" class="text-gray-300 hover:bg-gray-700 hover:text-white block px-3 py-2 rounded-md text-base font-medium">Calendar</a>
+                <a href="#" class="bg-gray-900 text-white block px-3 py-2 rounded-md text-base font-medium" aria-current="page">Get Started</a>
               </div>
             </div>
           </nav>
@@ -133,9 +129,6 @@
         <div class="absolute z-10 top-0 inset-x-0 p-2 transition transform origin-top-right md:hidden">
           <div class="rounded-lg shadow-md bg-white ring-1 ring-black ring-opacity-5 overflow-hidden">
             <div class="px-5 pt-4 flex items-center justify-between">
-              <div>
-                <img class="h-8 w-auto" src="https://tailwindui.com/img/logos/workflow-mark-indigo-600.svg" alt="">
-              </div>
               <div class="-mr-2">
                 <button type="button" class="bg-white rounded-md p-2 inline-flex items-center justify-center text-gray-400 hover:text-gray-500 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-indigo-500">
                   <span class="sr-only">Close main menu</span>
@@ -160,12 +153,15 @@
         </div>
       </div>
 
-      <main class="mt-10 mx-auto max-w-7xl px-4 sm:mt-12 sm:px-6 md:mt-16 lg:mt-20 lg:px-8 xl:mt-28">
+      <main class={lside}>
         <slot />
       </main>
     </div>
   </div>
-  <div class="lg:absolute lg:inset-y-0 lg:right-0 lg:w-1/2">
+  {#if homepage}
+  <div class={rside}>
     <img class="h-56 w-full object-cover sm:h-72 md:h-96 lg:w-full lg:h-full" src="https://images.unsplash.com/photo-1551434678-e076c223a692?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=crop&w=2850&q=80" alt="">
   </div>
+  {/if}
 </div>
+

@@ -12,3 +12,9 @@ export const Me = function () {
     })
 }
 
+export const Search = function () {
+  return fetch('/api/search', {credentials: 'include'})
+    .then(resp => {
+      return resp.ok ? resp.json() : null;
+    })
+}

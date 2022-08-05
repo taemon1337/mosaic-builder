@@ -1,6 +1,6 @@
 import { writable, derived } from 'svelte/store';
 
-export const User = writable({});
+export const User = writable(null);
 
 export const Picture = derived(
   User,

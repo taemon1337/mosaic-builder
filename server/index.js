@@ -2,27 +2,47 @@ import * as dotenv from 'dotenv'
 dotenv.config()
 import express from 'express';
 import session from 'express-session';
+import bodyParser from 'body-parser';
 import passport from 'passport';
 import oauth from 'passport-google-oauth';
+import { Search } from './api.js';
 // import { handler } from './build/handler.js';
 
 const app = express();
 const GoogleStrategy = oauth.OAuth2Strategy;
+const GoogleScopes = ['profile', 'email', 'https://www.googleapis.com/auth/photoslibrary.readonly'];
+
+function RequireAuth(req, res, next) {
+  if (!req.user || !req.isAuthenticated()) {
+    res.status(403).send('Not Authenticated - please sign in first.');
+    return
+  }
+
+  if (!req.user.token) {
+    console.log("req.user", req.user);
+    res.status(403).send('No Authentication token found.');
+    return
+  }
+
+  next()
+}
 
 app.use(session({
-  resave: false,
+  resave: true,
   saveUninitialized: true,
-  secret: 'SECRET' 
+  secret: process.env.SESSION_SECRET 
 }));
+
+// Parse application/json request data.
+app.use(bodyParser.json());
+
+// Parse application/xwww-form-urlencoded request data.
+app.use(bodyParser.urlencoded({extended: true}));
 
 /*  PASSPORT SETUP  */
 
-var userProfile;
-
 app.use(passport.initialize());
 app.use(passport.session());
-
-app.get('/success', (req, res) => res.send(userProfile));
 app.get('/error', (req, res) => res.send("error logging in"));
 
 passport.serializeUser(function(user, cb) {
@@ -42,18 +62,13 @@ passport.use(new GoogleStrategy({
     clientSecret: GOOGLE_CLIENT_SECRET,
     callbackURL: "http://localhost:3000/auth/google/callback"
   },
-  function(accessToken, refreshToken, profile, done) {
-      userProfile=profile;
-      return done(null, userProfile);
+  function(token, refreshToken, profile, done) {
+      return done(null, {profile, token});
   }
 ));
 
-app.get('/auth/me', (req, res) => {
-  if (req.session.passport && req.session.passport.user) {
-    res.json(req.session.passport.user)
-  } else {
-    res.status(403).send('Not Authenticated - please sign in first.');
-  }
+app.get('/auth/me', RequireAuth, (req, res) => {
+  res.json(req.user.profile)
 });
 
 app.get('/auth/delete', (req, res) => {
@@ -61,16 +76,27 @@ app.get('/auth/delete', (req, res) => {
 })
 
 app.get('/auth/google',
-  passport.authenticate('google', { scope : ['profile', 'email'] }));
+  passport.authenticate('google', { scope : GoogleScopes }));
 
 app.get('/auth/google/callback',
-  passport.authenticate('google', { failureRedirect: '/error' }),
+  passport.authenticate('google', { failureRedirect: '/error', session: true }),
   function(req, res) {
     // Successful authentication, redirect success.
     req.session.save(() => {
       res.redirect('http://localhost:5173');
     });
   });
+
+app.get('/api/search', RequireAuth, (req, res) => {
+  const authToken = req.user.token;
+  const filters = {contentFilter: {}, mediaTypeFilter: {mediaTypes: ['PHOTO']}};
+  const parameters = {filters};
+
+  Search(authToken, parameters).then(function (photos) {
+    res.status(200).send({photos: photos, parameters: parameters})
+  });
+});
+
 
 // let SvelteKit handle everything else, including serving prerendered pages and static assets
 //app.use(handler);
