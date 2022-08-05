@@ -8,12 +8,10 @@
   onMount(async () => { Load() });
 </script>
 
-<div class="sm:text-center lg:text-left">
-  <div class="grid grid-cols-10">
-    {#each $Photos.photos as photo}
-    <div>
+<div class="columns is-gapless is-multiline is-mobile">
+  {#each $Photos.photos as photo}
+    <div class="column is-1">
       <img src="{photo.baseUrl}=w{width}-h{height}" />
     </div>
-    {/each}
-  </div>
+  {/each}
 </div>
