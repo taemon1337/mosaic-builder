@@ -1,17 +1,19 @@
 <script>
-  import { onMount } from "svelte";
-  import { Photos, Load } from "../store/photo.js";
-
-  let width="64";
-  let height="64";
-
-  onMount(async () => { Load() });
+  import PhotoFilter from '../components/photofilter.svelte';
+  import SearchPanel from '../components/searchpanel.svelte';
+  import SelectedPanel from '../components/selectedpanel.svelte';
 </script>
 
-<div class="columns is-gapless is-multiline is-mobile">
-  {#each $Photos.photos as photo}
-    <div class="column is-1">
-      <img src="{photo.baseUrl}=w{width}-h{height}" />
+<section class="section">
+  <div class="columns">
+    <div class="column is-one-quarter">
+      <PhotoFilter />
     </div>
-  {/each}
-</div>
+    <div class="column is-half">
+      <SearchPanel />
+    </div>
+    <div class="column is-one-quarter">
+      <SelectedPanel />
+    </div>
+  </div>
+</section>
