@@ -17,6 +17,7 @@
     "passport-google-oauth": "^2.0.0"
   },
   "devDependencies": {
+    "cors": "^2.8.5",
     "dotenv": "^16.0.1",
     "node-fetch": "^3.2.10"
   }

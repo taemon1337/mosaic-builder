@@ -2,9 +2,13 @@ import fetch from 'node-fetch';
 
 const Api = 'https://photoslibrary.googleapis.com';
 
+export const Origins = [
+  Api,
+  'https://play.google.com',
+]
+
 export const Search = function (authToken, params) {
   params.pageSize = params.pageSize || 100;
-  console.log('[SEARCH]', params);
 
   return fetch(Api + '/v1/mediaItems:search', {
     method: 'post',

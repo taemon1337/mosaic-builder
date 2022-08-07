@@ -4,8 +4,9 @@ import express from 'express';
 import session from 'express-session';
 import bodyParser from 'body-parser';
 import passport from 'passport';
+import cors from 'cors';
 import oauth from 'passport-google-oauth';
-import { Search } from './api.js';
+import { Search, Origins } from './api.js';
 // import { handler } from './build/handler.js';
 
 const app = express();
@@ -38,6 +39,10 @@ app.use(bodyParser.json());
 
 // Parse application/xwww-form-urlencoded request data.
 app.use(bodyParser.urlencoded({extended: true}));
+
+app.use(cors({
+    origin: Origins,
+}));
 
 /*  PASSPORT SETUP  */
 
