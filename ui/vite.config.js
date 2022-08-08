@@ -5,9 +5,19 @@ const config = {
 	plugins: [sveltekit()],
 
 	server: {
+    cors: {
+      origin: "*",
+      credentials: true,
+    },
 		proxy: {
-			'/auth': 'http://server:3000',
-			'/api': 'http://server:3000'
+			'/auth': {
+        target: 'http://server:3000',
+        changeOrigin: true,
+      },
+			'/api': {
+        target: 'http://server:3000',
+        changeOrigin: true,
+      }
 		}
 	},
 

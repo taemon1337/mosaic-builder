@@ -5,6 +5,7 @@ const Api = 'https://photoslibrary.googleapis.com';
 export const Origins = [
   Api,
   'https://play.google.com',
+  'https://lh3.googleusercontent.com',
 ]
 
 export const Search = function (authToken, params) {
@@ -29,6 +30,13 @@ export const Search = function (authToken, params) {
     console.warn('[ERROR] caught error - ', err);
     return []
   });
+}
+
+export const Download = function (authToken, url) {
+  console.log("[GET] " + url);
+  return fetch(url, {
+    'Authorization': 'Bearer ' + authToken,
+  })
 }
 
 export const ParseSearchResponse = function (body) {

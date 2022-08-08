@@ -1053,6 +1053,11 @@
     "type-check" "^0.4.0"
     "word-wrap" "^1.2.3"
 
+"paper@^0.12.15":
+  "integrity" "sha512-9qqtcY+V0Sd2RTLZKh7rTfWDbhfitOrtq3kzgOufhGpuYpCUXM+3UIK61au14tI0F9NA4xSttDYfk376O50aPA=="
+  "resolved" "https://registry.npmjs.org/paper/-/paper-0.12.15.tgz"
+  "version" "0.12.15"
+
 "parent-module@^1.0.0":
   "integrity" "sha512-GQ2EWRpQV8/o+Aw8YqtfZZPfNRWZYkbidE9k5rpl/hC3vtHHBfGm2Ifi6qWV+coDGkrUKZAxE3Lot5kcsRlh+g=="
   "resolved" "https://registry.npmjs.org/parent-module/-/parent-module-1.0.1.tgz"

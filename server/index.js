@@ -6,8 +6,8 @@ import bodyParser from 'body-parser';
 import passport from 'passport';
 import cors from 'cors';
 import oauth from 'passport-google-oauth';
-import { Search, Origins } from './api.js';
-// import { handler } from './build/handler.js';
+import { Search, Download, Origins } from './api.js';
+//import { handler } from './build/handler.js';
 
 const app = express();
 const GoogleStrategy = oauth.OAuth2Strategy;
@@ -40,9 +40,18 @@ app.use(bodyParser.json());
 // Parse application/xwww-form-urlencoded request data.
 app.use(bodyParser.urlencoded({extended: true}));
 
-app.use(cors({
-    origin: Origins,
-}));
+/* CORS SETUP */
+
+const corsOptions = {
+  origin: function (origin, callback) {
+    origin = origin || "*"
+    callback(null, origin);
+  },
+  credentials: true,
+}
+
+app.options('*', cors(corsOptions));
+app.use(cors(corsOptions));
 
 /*  PASSPORT SETUP  */
 
@@ -101,6 +110,13 @@ app.get('/api/search', RequireAuth, (req, res) => {
     res.status(200).send({photos: photos, parameters: parameters})
   });
 });
+
+app.get('/api/photo/*', RequireAuth, (req, res) => {
+  const authToken = req.user.token;
+  Download(authToken, "https://" + req.originalUrl.replace("/api/photo/", "")).then(function (resp) {
+    resp.body.pipe(res);
+  });
+})
 
 
 // let SvelteKit handle everything else, including serving prerendered pages and static assets

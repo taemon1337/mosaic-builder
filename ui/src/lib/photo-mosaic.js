@@ -22,7 +22,7 @@ PhotoMosaic.prototype.extend = function (dest, sources) {
   return dest;
 }
 
-PhotoMosaic.prototype.defaults = {
+export const DefaultOptions = {
   image: null,
   tileWidth: 5,
   tileHeight: 5,
@@ -32,6 +32,8 @@ PhotoMosaic.prototype.defaults = {
   height: null,
   defaultBackground: 'rgba(0, 0, 0, 0)',
 }
+
+PhotoMosaic.prototype.defaults = DefaultOptions
 
 PhotoMosaic.prototype.renderImage = function() {
   var options = this.opts;
