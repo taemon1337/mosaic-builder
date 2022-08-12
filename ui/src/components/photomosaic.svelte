@@ -1,89 +1,125 @@
 <script>
   import { onMount } from 'svelte';
-  import { MainPhoto, TilePhotos } from "../store/photo.js";
+  import { MainPhotoUrl, TilePhotos } from "../store/photo.js";
   import { PhotoMosaic, DefaultOptions } from "$lib/photo-mosaic.js";
-  import { paper, project, view, Size, Path, Point } from 'paper';
+  import { Image, Shape } from 'image-js';
+  import ProgressBar from '../components/progressbar.svelte';
+  import Color from 'color';
 
-  let img;
+  let image;
   let mosaic;
-  let width = "1080";
-  let height = "1920";
-  let gridSize = 12;
-  let spacing = 1.2;
+  let preview;
+  let tileWidth = 100;
+  let tileHeight = 100;
+  let progress = 0;
+  let tilesByColor = [];
 
-  // this actually proxies through the api to avoid CORS issues
-  const PhotoUrl = function () {
-    return "/api/photo/" + $MainPhoto.baseUrl.replace('https://', '') + "=w"+width+"-h"+height
-//    return $MainPhoto === null ? "" : $MainPhoto.baseUrl + "=w"+width+"-h"+height
+  const GetClosestColorIndex = function (color) {
+    let diff = 255;
+    let idx = 0;
+
+    $TilePhotos.forEach(function (photo, i) {
+      if (Math.abs(photo.averageColor - color) < diff) {
+        diff = photo.averageColor;
+        idx = i;
+      }
+    })
+
+    return idx;
   }
 
-  const RenderRaster = function () {
-    let raster = new paper.Raster(mosaic);
+  const GetAverageColor = function (tile) {
+    let sum = 0;
+    let total = tile.width * tile.height;
 
-    raster.onLoad = function() {
-      raster.Size = new Size(40, 30);
-
-      for (let y = 0; y < raster.height; y++) {
-        for (let x = 0; x < raster.width; x++) {
-          let color = raster.getPixel(x, y);
-
-          let path = new Path.Circle({
-            center: new Point(x, y) * gridSize,
-            radius: gridSize / 2 / spacing,
-          })
-
-          path.fillColor = color;
-        }
+    for (let x = 0; x < tile.width; x++) {
+      for (let y = 0; y < tile.height; y++) {
+        sum += tile.getPixelXY(x, y);
       }
-      project.activeLayer.position = view.center;
     }
+
+    return (sum / total) * 100;
   }
 
   const Render = function () {
-    if (img) {
-      img.src = PhotoUrl();
-      RenderRaster()
-    }
-  }
+    console.log('rendering...');
+    Image.load(image.src).then(function(mos) {
+      let rgbaImage = mos.rgba8();
+      let processed = 0;
+      let processedTotal = 0;
+      progress = 0;
 
-  onMount(() => {
-    paper.setup(mosaic);
-    img = new Image();
-    const ctx = mosaic.getContext("2d");
-    img.crossOrigin = "use-credentials"; // 'anonymous' or 'use-credentials'
-    img.onload = function () {
-      mosaic.width = img.width;
-      mosaic.height = img.height;
-      ctx.drawImage(img, 0, 0);
-    }
-  })
+      mosaic.width = rgbaImage.width;
+      mosaic.height = rgbaImage.height;
+      preview.width = tileWidth;
+      preview.height = tileHeight;
+
+      let totalWidth = rgbaImage.width;
+      let totalHeight = rgbaImage.height;
+
+      let rows = Math.floor(rgbaImage.width / tileWidth);
+      let cols = Math.floor(rgbaImage.height / tileHeight);
+
+      let adjustedWidth = rows * tileWidth;
+      let adjustedHeight = cols * tileHeight;
+
+      let target = Image.createFrom(rgbaImage);
+      target = target.resize({ width: adjustedWidth, height: adjustedHeight });
+
+      // iterate over image in chunks/tiles
+      processedTotal = rows * cols;
+      for (let row = 0; row < adjustedWidth; row+=tileWidth) {
+        for (let col = 0; col < adjustedHeight; col+=tileHeight) {
+          processed++
+          let tile = rgbaImage.crop({ x: row, y: col, width: tileWidth, height: tileHeight });
+
+          tile = tile.setBorder({ size: 1, algorithm: 'set', color: [255, 255, 255, 255] });
+          preview.src = tile.toDataURL();
+
+          let color = GetAverageColor(tile);
+          let tileIndex = GetClosestColorIndex(color);
+
+          if ($TilePhotos[tileIndex] && $TilePhotos[tileIndex].image) {
+            let i = $TilePhotos[tileIndex].image;
+            tile = i.resize({ width: tileWidth, height: tileHeight });
+          } else {
+            console.log('could not find matching/loaded tile', $TilePhotos[tileIndex]);
+          }
+
+          target.insert(tile, { x: row, y: col, inPlace: true });
+        }
+        progress = Math.round((processed / processedTotal) * 100);
+        console.log('PROGRESS', progress);
+      }
+
+      mosaic.src = target.toDataURL();
+      console.log('rendered');
+    });
+  }
 </script>
 
 <section>
+  <nav class="level">
+    <div class="level-left">
+      <div class="level-item">
+        <a on:click={Render} class="button is-primary">Draw Mosaic</a>
+      </div>
+    </div>
+    <div class="level-right">
+      <div class="level-item">
+        <img bind:this={preview} />
+      </div>
+    </div>
+  </nav>
+  <ProgressBar value={progress} onValueChange="{(x) => progress = x}" />
   <div class="columns">
     <div class="column is-half">
-      <canvas bind:this={mosaic} crossorigin=""></canvas>
-      {#if $MainPhoto}
-      <button on:click={Render} class="button is-primary" disabled={$MainPhoto ? false : true}>Render</button>
-      {/if}
+      <img bind:this={mosaic} />
     </div>
     <div class="column is-half">
-      <div class="field">
-        <label class="label">Width</label>
-        <input bind:value={DefaultOptions.width} class="input" type="text" />
-      </div>
-      <div class="field">
-        <label class="label">Height</label>
-        <input bind:value={DefaultOptions.height} class="input" type="text" />
-      </div>
-      <div class="field">
-        <label class="label">Tile Width</label>
-        <input bind:value={DefaultOptions.tileWidth} class="input" type="text" />
-      </div>
-      <div class="field">
-        <label class="label">Tile Height</label>
-        <input bind:value={DefaultOptions.tileHeight} class="input" type="text" />
-      </div>
+      {#if $MainPhotoUrl}
+      <img bind:this={image} src={$MainPhotoUrl} />
+      {/if}
     </div>
   </div>
 </section>

@@ -1,9 +1,17 @@
 <script>
   import { onMount } from "svelte";
-  import { Load, Photos, TilePhotos } from "../store/photo.js";
+  import { Load, Photos, TilePhotos, GetAverageColor } from "../store/photo.js";
   import ThumbPhoto from '../components/thumbphoto.svelte';
 
-  const SelectPhoto = (photo) => {
+  const SelectPhoto = (photo, el) => {
+    let img = el.children[0];
+    let canvas = document.createElement('canvas');
+    let ctx = canvas.getContext('2d');
+    canvas.width = img.width;
+    canvas.height = img.height;
+    ctx.drawImage(img, 0, 0);
+//    photo.dataURL = ctx.getImageData(0, 0, img.width, img.height);
+    GetAverageColor(photo, img.src);
     $TilePhotos = [...$TilePhotos, photo]
   }
 
@@ -20,7 +28,7 @@
       <div class="columns is-gapless is-multiline is-mobile">
         {#each $Photos.photos as photo}
           <div class="column is-1">
-            <a on:click|once={SelectPhoto(photo)} href="#">
+            <a on:click|once={SelectPhoto(photo, this)} href="#">
               <ThumbPhoto photo={photo} />
             </a>
           </div>

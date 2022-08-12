@@ -3,4 +3,4 @@
   let width = "64";
   let height = "64";
 </script>
-<img src="{photo.baseUrl}=w{width}-h{height}" />
+<img id={photo.id} src="{photo.baseUrl.replace('https:/', '/api/photo')}=w{width}-h{height}" />
