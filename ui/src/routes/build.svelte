@@ -2,6 +2,7 @@
   import PhotoFilter from '../components/photofilter.svelte';
   import MainPhotoSelect from '../components/mainphoto-select.svelte';
   import TilePhotosSelect from '../components/tilephotos-select.svelte';
+  import TestTiles from '../components/testtiles.svelte';
   import PhotoMosaic from '../components/photomosaic.svelte';
 
   let activeTab = "search";
@@ -28,6 +29,12 @@
           <span>Select Tiles</span>
         </a>
       </li>
+      <li class={activeTab == "test" ? "is-active" : ""}>
+        <a on:click={() => activeTab = "test"}>
+          <span class="icon"><i class="fas fa-film" aria-hidden="true"></i></span>
+          <span>Test Tiles</span>
+        </a>
+      </li>
       <li class={activeTab == "mosaic" ? "is-active" : ""}>
         <a on:click={() => activeTab = "mosaic"}>
           <span class="icon"><i class="far fa-file-alt" aria-hidden="true"></i></span>
@@ -44,6 +51,9 @@
   </div>
   <div class={activeTab == "tiles" ? "" : "is-hidden"}>
     <TilePhotosSelect />
+  </div>
+  <div class={activeTab == "test" ? "" : "is-hidden"}>
+    <TestTiles />
   </div>
   <div class={activeTab == "mosaic" ? "" : "is-hidden"}>
     <PhotoMosaic />

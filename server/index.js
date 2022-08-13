@@ -6,7 +6,7 @@ import bodyParser from 'body-parser';
 import passport from 'passport';
 import cors from 'cors';
 import oauth from 'passport-google-oauth';
-import { Search, Download, Origins } from './api.js';
+import { Search, RefreshRetry, Download, Origins } from './api.js';
 //import { handler } from './build/handler.js';
 
 const app = express();
@@ -87,6 +87,7 @@ app.get('/auth/me', RequireAuth, (req, res) => {
 
 app.get('/auth/delete', (req, res) => {
   req.session.destroy()
+  res.json(true);
 })
 
 app.get('/auth/google',
@@ -102,19 +103,23 @@ app.get('/auth/google/callback',
   });
 
 app.get('/api/search', RequireAuth, (req, res) => {
-  const authToken = req.user.token;
   const filters = {contentFilter: {}, mediaTypeFilter: {mediaTypes: ['PHOTO']}};
   const parameters = {filters};
 
-  Search(authToken, parameters).then(function (photos) {
+  Search(req.user, parameters).then(function (photos) {
     res.status(200).send({photos: photos, parameters: parameters})
+  }).catch(function (err) {
+    console.log("ERROR:500:/api/search", err);
+    res.status(500).send(err);
   });
 });
 
 app.get('/api/photo/*', RequireAuth, (req, res) => {
-  const authToken = req.user.token;
-  Download(authToken, "https://" + req.originalUrl.replace("/api/photo/", "")).then(function (resp) {
+  Download(req.user, { url: "https://" + req.originalUrl.replace("/api/photo/", "") }).then(function (resp) {
     resp.body.pipe(res);
+  }).catch(function (err) {
+    console.log("ERROR:500:/api/photo", err);
+    res.status(500).send(err);
   });
 })
 

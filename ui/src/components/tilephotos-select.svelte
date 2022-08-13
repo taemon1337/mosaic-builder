@@ -1,6 +1,6 @@
 <script>
   import { onMount } from "svelte";
-  import { Load, Photos, TilePhotos, GetAverageColor } from "../store/photo.js";
+  import { Load, Photos, TilePhotos, GetAverageColor, TileWidth, TileHeight } from "../store/photo.js";
   import ThumbPhoto from '../components/thumbphoto.svelte';
 
   const SelectPhoto = (photo, el) => {
@@ -10,8 +10,7 @@
     canvas.width = img.width;
     canvas.height = img.height;
     ctx.drawImage(img, 0, 0);
-//    photo.dataURL = ctx.getImageData(0, 0, img.width, img.height);
-    GetAverageColor(photo, img.src);
+    GetAverageColor(photo, img.src, {width: $TileWidth, height: $TileHeight});
     $TilePhotos = [...$TilePhotos, photo]
   }
 

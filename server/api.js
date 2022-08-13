@@ -1,4 +1,5 @@
 import fetch from 'node-fetch';
+import refresh from 'passport-oauth2-refresh';
 
 const Api = 'https://photoslibrary.googleapis.com';
 
@@ -8,14 +9,15 @@ export const Origins = [
   'https://lh3.googleusercontent.com',
 ]
 
-export const Search = function (authToken, params) {
+export const Search = function (user, params, opts) {
+  opts = Object.assign({retries: 1, func: 'search'}, opts);
   params.pageSize = params.pageSize || 100;
 
   return fetch(Api + '/v1/mediaItems:search', {
     method: 'post',
     headers: {
       'Content-Type': 'application/json',
-      'Authorization': 'Bearer ' + authToken,
+      'Authorization': 'Bearer ' + user.token,
     },
     body: JSON.stringify(params),
   }).then(function (resp) {
@@ -26,17 +28,44 @@ export const Search = function (authToken, params) {
     }
   }).then(function (data) {
     return ParseSearchResponse(data)
-  }).catch(function (err) {
-    console.warn('[ERROR] caught error - ', err);
-    return []
-  });
+  }).catch(RefreshRetry(user, params, opts));
 }
 
-export const Download = function (authToken, url) {
-  console.log("[GET] " + url);
-  return fetch(url, {
-    'Authorization': 'Bearer ' + authToken,
-  })
+export const Download = function (user, params, opts) {
+  opts = Object.assign({retries: 1, func: 'download'}, opts);
+  console.log("[GET] " + params.url);
+  return fetch(params.url, {
+    'Authorization': 'Bearer ' + user.token,
+  }).catch(RefreshRetry(user, params, opts));
+}
+
+export const RefreshRetry = function (user, params, opts) {
+  return function (err) {
+    if (params.retries < 1) {
+      console.log("[OUT OF RETRIES]", err);
+      throw err; // out of retries
+    }
+    opts.retries = opts.retries - 1;
+
+    if (err.code == 401) {
+      // access token expired
+      refresh.requestNewAccessToken('google', user.refreshToken, function (err, accessToken) {
+        if (err || !accessToken) {
+          return res.status(401).end();
+        }
+
+        user.token = accessToken;
+        switch(opts.func) {
+          case "search":
+            return Search(user, params);
+          case "download":
+            return Download(user, params);
+        }
+      });
+    }
+
+    throw err; // preserve original error
+  }
 }
 
 export const ParseSearchResponse = function (body) {

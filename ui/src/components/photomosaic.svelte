@@ -1,7 +1,6 @@
 <script>
   import { onMount } from 'svelte';
-  import { MainPhotoUrl, TilePhotos } from "../store/photo.js";
-  import { PhotoMosaic, DefaultOptions } from "$lib/photo-mosaic.js";
+  import { MainPhotoUrl, TilePhotos, GetAverageColorOfTile, TileWidth, TileHeight } from "../store/photo.js";
   import { Image, Shape } from 'image-js';
   import ProgressBar from '../components/progressbar.svelte';
   import Color from 'color';
@@ -9,36 +8,52 @@
   let image;
   let mosaic;
   let preview;
-  let tileWidth = 100;
-  let tileHeight = 100;
-  let progress = 0;
   let tilesByColor = [];
 
-  const GetClosestColorIndex = function (color) {
-    let diff = 255;
+  $: progress = 0;
+
+  // https://en.wikipedia.org/wiki/YUV#Converting_between_Y%E2%80%B2UV_and_RGB
+  const RGB2YUV = function (rgb) {
+    let yuv = [0,0,0];
+    yuv[0] = 0.299*rgb[0] + 0.587*rgb[1] + 0.114*rgb[2]; // compute Y
+    yuv[1] = -0.147*rgb[0] - 0.289*rgb[1] + 0.436*rgb[2]; // compute U
+    yuv[2] = 0.615*rgb[0] - 0.515*rgb[1] - 0.100*rgb[2]; // compute V
+    return yuv;
+  }
+
+  const YUV2RGB = function (yuv) {
+    let rgb = [0,0,0];
+    rgb[0] = - 0.299*yuv[0] - 0.587*yuv[1] - 0.114*yuv[2]; // compute R
+    rgb[1] = 0.147*yuv[0] + 0.289*yuv[1] - 0.436*yuv[2]; // compute G
+    rgb[2] = - 0.615*yuv[0] + 0.515*yuv[1] + 0.100*yuv[2]; // compute B
+    return rgb;
+  }
+
+  const RGB2HEX = function (r, g, b) {
+    return '#' + ((1 << 24) + (r << 16) + (g << 8) + b).toString(16).slice(1);
+  }
+
+  const GetClosestTileIndexByColor = function (color) {
+    let yuv = RGB2YUV(color);
+    let diff = 255*3;
     let idx = 0;
 
     $TilePhotos.forEach(function (photo, i) {
-      if (Math.abs(photo.averageColor - color) < diff) {
-        diff = photo.averageColor;
+      let avg = RGB2YUV(photo.averageColor);
+
+      let photodiff = Math.abs(avg[0] - yuv[0]) + Math.abs(avg[1] - yuv[1]) + Math.abs(avg[2] - yuv[2]);
+      if (photodiff < diff) {
+        console.log("FOUND CLOSER TILE BY COLOR", avg);
+        diff = photodiff;
         idx = i;
       }
-    })
+    });
 
-    return idx;
+    return { index: idx, background: RGB2HEX(color) }
   }
 
-  const GetAverageColor = function (tile) {
-    let sum = 0;
-    let total = tile.width * tile.height;
-
-    for (let x = 0; x < tile.width; x++) {
-      for (let y = 0; y < tile.height; y++) {
-        sum += tile.getPixelXY(x, y);
-      }
-    }
-
-    return (sum / total) * 100;
+  const Clear = function () {
+    mosaic.src = "";
   }
 
   const Render = function () {
@@ -47,6 +62,8 @@
       let rgbaImage = mos.rgba8();
       let processed = 0;
       let processedTotal = 0;
+      let tileWidth = $TileWidth;
+      let tileHeight = $TileHeight;
       progress = 0;
 
       mosaic.width = rgbaImage.width;
@@ -73,17 +90,17 @@
           processed++
           let tile = rgbaImage.crop({ x: row, y: col, width: tileWidth, height: tileHeight });
 
-          tile = tile.setBorder({ size: 1, algorithm: 'set', color: [255, 255, 255, 255] });
+//          tile = tile.setBorder({ size: 1, algorithm: 'set', color: [255, 255, 255, 255] });
           preview.src = tile.toDataURL();
 
-          let color = GetAverageColor(tile);
-          let tileIndex = GetClosestColorIndex(color);
+          let color = GetAverageColorOfTile(tile);
+          let res = GetClosestTileIndexByColor(color);
 
-          if ($TilePhotos[tileIndex] && $TilePhotos[tileIndex].image) {
-            let i = $TilePhotos[tileIndex].image;
+          if ($TilePhotos[res.index] && $TilePhotos[res.index].image) {
+            let i = $TilePhotos[res.index].image;
             tile = i.resize({ width: tileWidth, height: tileHeight });
           } else {
-            console.log('could not find matching/loaded tile', $TilePhotos[tileIndex]);
+            console.log('could not find matching/loaded tile', $TilePhotos[res.index]);
           }
 
           target.insert(tile, { x: row, y: col, inPlace: true });
@@ -103,6 +120,9 @@
     <div class="level-left">
       <div class="level-item">
         <a on:click={Render} class="button is-primary">Draw Mosaic</a>
+      </div>
+      <div class="level-item">
+        <a on:click={Clear} class="button is-primary">Clear</a>
       </div>
     </div>
     <div class="level-right">
