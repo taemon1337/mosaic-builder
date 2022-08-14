@@ -5,8 +5,8 @@ import { Search } from '$lib/api.js';
 export const Photos = writable({photos: []});
 export const MainPhoto = writable(null);
 export const TilePhotos = writable([]);
-export const TileWidth = writable(10);
-export const TileHeight = writable(10);
+export const TileWidth = writable(50);
+export const TileHeight = writable(50);
 export const ColorPhotos = writable(['black', 'white', 'red', 'blue', 'orange', 'yellow', 'grey', 'pink', 'purple', 'green', 'light-blue']);
 
 export const MainPhotoUrl = derived(

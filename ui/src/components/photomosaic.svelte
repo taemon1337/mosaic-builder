@@ -2,6 +2,7 @@
   import { onMount } from 'svelte';
   import { MainPhotoUrl, TilePhotos, GetAverageColorOfTile, TileWidth, TileHeight } from "../store/photo.js";
   import { Image, Shape } from 'image-js';
+  import { BlendImage } from '$lib/blend.js';
   import ProgressBar from '../components/progressbar.svelte';
   import Color from 'color';
 
@@ -98,6 +99,7 @@
 
           if ($TilePhotos[res.index] && $TilePhotos[res.index].image) {
             let i = $TilePhotos[res.index].image;
+            tile = BlendImage(i, tile);
             tile = i.resize({ width: tileWidth, height: tileHeight });
           } else {
             console.log('could not find matching/loaded tile', $TilePhotos[res.index]);
@@ -109,14 +111,17 @@
         console.log('PROGRESS', progress);
       }
 
+/*
+<canvas bind:this={mosaic} class="coveringCanvas"></canvas>
       let ctx = mosaic.getContext('2d');
       target.toBlob().then(function (blob) {
         createImageBitmap(blob, 0, 0, target.width, target.height).then(function (resp) {
           ctx.drawImage(resp, 0, 0);
         });
       });
+*/
 
-//      mosaic.src = target.toDataURL();
+      mosaic.src = target.toDataURL();
       console.log('rendered');
     });
   }
@@ -141,14 +146,9 @@
   <ProgressBar value={progress} onValueChange="{(x) => progress = x}" />
   <div class="columns">
     <div class="column is-half">
-      <div class="outsideWrapper">
-        <div class="insideWrapper">
-          {#if $MainPhotoUrl}
-          <img src={$MainPhotoUrl} />
-          <canvas bind:this={mosaic} class="coveringCanvas"></canvas>
-          {/if}
-        </div>
-      </div>
+      {#if $MainPhotoUrl}
+      <img bind:this={mosaic} />
+      {/if}
     </div>
     <div class="column is-half">
       {#if $MainPhotoUrl}
