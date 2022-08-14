@@ -43,7 +43,7 @@
 
       let photodiff = Math.abs(avg[0] - yuv[0]) + Math.abs(avg[1] - yuv[1]) + Math.abs(avg[2] - yuv[2]);
       if (photodiff < diff) {
-        console.log("FOUND CLOSER TILE BY COLOR", avg);
+        console.log("FOUND CLOSER TILE BY COLOR", photodiff);
         diff = photodiff;
         idx = i;
       }
@@ -109,7 +109,14 @@
         console.log('PROGRESS', progress);
       }
 
-      mosaic.src = target.toDataURL();
+      let ctx = mosaic.getContext('2d');
+      target.toBlob().then(function (blob) {
+        createImageBitmap(blob, 0, 0, target.width, target.height).then(function (resp) {
+          ctx.drawImage(resp, 0, 0);
+        });
+      });
+
+//      mosaic.src = target.toDataURL();
       console.log('rendered');
     });
   }
@@ -134,7 +141,14 @@
   <ProgressBar value={progress} onValueChange="{(x) => progress = x}" />
   <div class="columns">
     <div class="column is-half">
-      <img bind:this={mosaic} />
+      <div class="outsideWrapper">
+        <div class="insideWrapper">
+          {#if $MainPhotoUrl}
+          <img src={$MainPhotoUrl} />
+          <canvas bind:this={mosaic} class="coveringCanvas"></canvas>
+          {/if}
+        </div>
+      </div>
     </div>
     <div class="column is-half">
       {#if $MainPhotoUrl}
@@ -143,3 +157,23 @@
     </div>
   </div>
 </section>
+
+<style>
+.outsideWrapper{ 
+    width:256px; height:256px; 
+    margin:20px 60px; 
+    border:1px solid blue;}
+.insideWrapper{ 
+    width:100%; height:100%; 
+    position:relative;}
+.coveredImage{ 
+    width:100%; height:100%; 
+    position:absolute; top:0px; left:0px;
+}
+.coveringCanvas{ 
+    width:100%; height:100%; 
+    position:absolute; top:0px; left:0px;
+    background-color: rgba(255,0,0,.1);
+    opacity:0.65;
+}
+</style>

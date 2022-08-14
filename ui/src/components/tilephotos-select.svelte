@@ -1,6 +1,6 @@
 <script>
   import { onMount } from "svelte";
-  import { Load, Photos, TilePhotos, GetAverageColor, TileWidth, TileHeight } from "../store/photo.js";
+  import { Load, Photos, TilePhotos, ColorPhotos, GetAverageColor, TileWidth, TileHeight } from "../store/photo.js";
   import ThumbPhoto from '../components/thumbphoto.svelte';
 
   const SelectPhoto = (photo, el) => {
@@ -14,6 +14,18 @@
     $TilePhotos = [...$TilePhotos, photo]
   }
 
+  const SelectColor = (color) => {
+    let img = document.getElementById("color-" + color);
+    let photo = { baseUrl: img.src };
+    let canvas = document.createElement('canvas');
+    let ctx = canvas.getContext('2d');
+    canvas.width = img.width;
+    canvas.height = img.height;
+    ctx.drawImage(img, 0, 0);
+    GetAverageColor(photo, img.src, {width: $TileWidth, height: $TileHeight});
+    $TilePhotos = [...$TilePhotos, photo];
+  }
+
   const DeselectPhoto = (id) => {
     $TilePhotos = $TilePhotos.filter(photo => photo.id !== id)
   }
@@ -23,7 +35,16 @@
 
 <section class="section">
   <div class="columns">
-    <div class="column is-three-quarters">
+    <div class="column is-one-fifth">
+      {#each $ColorPhotos as color}
+        <div class="column is-1">
+          <a on:click|once={SelectColor(color)} href="#">
+            <img id="color-{color}" src="/colors/{color}.png" />
+          </a>
+        </div>
+      {/each}
+    </div>
+    <div class="column is-three-fifths">
       <div class="columns is-gapless is-multiline is-mobile">
         {#each $Photos.photos as photo}
           <div class="column is-1">
@@ -34,7 +55,7 @@
         {/each}
       </div>
     </div>
-    <div class="column is-one-quarter">
+    <div class="column is-one-fifth">
       <nav class="panel">
         <p class="panel-heading">
           Selected Photos

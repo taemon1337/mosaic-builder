@@ -87,7 +87,7 @@ app.get('/auth/me', RequireAuth, (req, res) => {
 
 app.get('/auth/delete', (req, res) => {
   req.session.destroy()
-  res.json(true);
+  res.redirect('/');
 })
 
 app.get('/auth/google',
@@ -121,8 +121,7 @@ app.get('/api/photo/*', RequireAuth, (req, res) => {
     console.log("ERROR:500:/api/photo", err);
     res.status(500).send(err);
   });
-})
-
+});
 
 // let SvelteKit handle everything else, including serving prerendered pages and static assets
 //app.use(handler);
