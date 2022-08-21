@@ -12,7 +12,7 @@
       let ctx = main.getContext('2d');
 
       if (img.width != $TargetWidth || img.height != $TargetHeight) {
-        console.log('resizing to ' + $TargetWidth + 'x' + $TargetHeight);
+        console.log('resizing from ' + img.width + 'x' + img.height + 'to ' + $TargetWidth + 'x' + $TargetHeight);
         img = img.resize({ width: $TargetWidth, height: $TargetHeight });
       }
 

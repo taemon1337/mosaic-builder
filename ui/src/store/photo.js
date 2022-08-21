@@ -5,8 +5,8 @@ import { Search } from '$lib/api.js';
 export const Photos = writable({photos: []});
 export const MainPhoto = writable(null);
 export const TilePhotos = writable([]);
-export const TileWidth = writable(50);
-export const TileHeight = writable(50);
+export const TileWidth = writable(20);
+export const TileHeight = writable(20);
 export const TargetWidth = writable(1920);
 export const TargetHeight = writable(1080);
 export const TargetModes = writable(['normal', 'src-in', 'screen', 'multiply', 'difference', 'exclusion']);
@@ -17,6 +17,11 @@ export const MainPhotoUrl = derived(
   $MainPhoto => $MainPhoto ? FullPhotoUrl($MainPhoto) : ""
 )
 
+export const MainPhotoOriginalUrl = derived(
+  MainPhoto,
+  $MainPhoto => $MainPhoto ? OriginalPhotoUrl($MainPhoto) : ""
+)
+
 export const FirstTile = derived(
   TilePhotos,
   $TilePhotos => $TilePhotos.length ? $TilePhotos[0] : null
@@ -24,6 +29,10 @@ export const FirstTile = derived(
 
 export const FullPhotoUrl = function (photo) {
   return "/api/photo/" + photo.baseUrl.replace('https://', '') + "=w1080-h1920";
+}
+
+export const OriginalPhotoUrl = function (photo) {
+  return "/api/photo/" + photo.baseUrl.replace('https://', '') + "=dv";
 }
 
 export const TilePhotoUrl = function (photo) {

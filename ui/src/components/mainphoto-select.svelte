@@ -1,6 +1,6 @@
 <script>
   import { onMount } from "svelte";
-  import { Load, Photos, MainPhoto } from "../store/photo.js";
+  import { Load, Photos, MainPhoto, MainPhotoUrl } from "../store/photo.js";
   import ThumbPhoto from '../components/thumbphoto.svelte';
 
   const SelectPhoto = (photo) => {
@@ -26,13 +26,13 @@
     <div class="column is-one-quarter">
       <nav class="panel">
         <p class="panel-heading">
-          Selected Photos
+          Selected Main Photo
         </p>
-        {#if $MainPhoto}
-        <img src="{$MainPhoto.baseUrl}=w1080-h1920" />
+        {#if $MainPhotoUrl}
+        <img src="{$MainPhotoUrl}" />
         {/if}
         <div class="panel-block">
-          <button class="button is-link is-outlined is-fullwidth" disabled={$MainPhoto == null}>
+          <button class="button is-link is-outlined is-fullwidth" disabled={$MainPhotoUrl == null}>
             Next - select tile images
           </button>
         </div>
