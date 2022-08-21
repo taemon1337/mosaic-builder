@@ -1,6 +1,6 @@
 <script>
   import { onMount } from 'svelte';
-  import { MainPhotoUrl, TilePhotos, GetAverageColorOfTile, TileWidth, TileHeight } from "../store/photo.js";
+  import { MainPhotoUrl, TilePhotos, FirstTile, GetAverageColorOfTile, TileWidth, TileHeight } from "../store/photo.js";
   import { Image, Shape } from 'image-js';
   import { BlendImage } from '$lib/blend.js';
   import ProgressBar from '../components/progressbar.svelte';
@@ -9,6 +9,9 @@
   let image;
   let mosaic;
   let preview;
+  let image2;
+  let canvas1;
+  let canvas2;
   let tilesByColor = [];
 
   $: progress = 0;
@@ -55,6 +58,30 @@
 
   const Clear = function () {
     mosaic.src = "";
+  }
+
+  const Render2 = function () {
+    console.log('rendering this way...');
+    Image.load(image.src).then(function (im1) {
+      let c1 = canvas1.getContext('2d');
+      let c11 = im1.rgba8().getCanvas();
+      canvas1.width = im1.width;
+      canvas1.height = im1.height;
+      c1.drawImage(c11, 0, 0);
+
+      if (image2 && image2.src) {
+        Image.load(image2.src).then(function (im2) {
+          let c2 = canvas2.getContext('2d');
+          let c22 = im2.rgba8().getCanvas();
+          canvas2.width = im2.width;
+          canvas2.height = im2.height;
+          c2.drawImage(c22, 0, 0);
+
+          c1.blendOnto(c2, 'screen');
+          console.log('done');
+        });
+      }
+    });
   }
 
   const Render = function () {
@@ -111,16 +138,6 @@
         console.log('PROGRESS', progress);
       }
 
-/*
-<canvas bind:this={mosaic} class="coveringCanvas"></canvas>
-      let ctx = mosaic.getContext('2d');
-      target.toBlob().then(function (blob) {
-        createImageBitmap(blob, 0, 0, target.width, target.height).then(function (resp) {
-          ctx.drawImage(resp, 0, 0);
-        });
-      });
-*/
-
       mosaic.src = target.toDataURL();
       console.log('rendered');
     });
@@ -132,6 +149,9 @@
     <div class="level-left">
       <div class="level-item">
         <a on:click={Render} class="button is-primary">Draw Mosaic</a>
+      </div>
+      <div class="level-item">
+        <a on:click={Render2} class="button is-primary">Try This</a>
       </div>
       <div class="level-item">
         <a on:click={Clear} class="button is-primary">Clear</a>
@@ -156,24 +176,19 @@
       {/if}
     </div>
   </div>
+  <div class="columns">
+    <div>
+      {#if $FirstTile && $FirstTile.imageUrl}
+      <img bind:this={image2} src={$FirstTile.imageUrl} />
+      {/if}
+    </div>
+    <br/>
+    <div>
+      <canvas bind:this={canvas1}></canvas>
+    </div>
+    <br/>
+    <div>
+      <canvas bind:this={canvas2}></canvas>
+    </div>
+  </div>
 </section>
-
-<style>
-.outsideWrapper{ 
-    width:256px; height:256px; 
-    margin:20px 60px; 
-    border:1px solid blue;}
-.insideWrapper{ 
-    width:100%; height:100%; 
-    position:relative;}
-.coveredImage{ 
-    width:100%; height:100%; 
-    position:absolute; top:0px; left:0px;
-}
-.coveringCanvas{ 
-    width:100%; height:100%; 
-    position:absolute; top:0px; left:0px;
-    background-color: rgba(255,0,0,.1);
-    opacity:0.65;
-}
-</style>

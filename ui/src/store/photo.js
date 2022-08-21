@@ -11,8 +11,17 @@ export const ColorPhotos = writable(['black', 'white', 'red', 'blue', 'orange', 
 
 export const MainPhotoUrl = derived(
   MainPhoto,
-  $MainPhoto => $MainPhoto ? "/api/photo/" + $MainPhoto.baseUrl.replace('https://', '') + "=w1080-h1920" : ""
+  $MainPhoto => $MainPhoto ? FullPhotoUrl($MainPhoto) : ""
 )
+
+export const FirstTile = derived(
+  TilePhotos,
+  $TilePhotos => $TilePhotos.length ? $TilePhotos[0] : null
+)
+
+export const FullPhotoUrl = function (photo) {
+  return "/api/photo/" + photo.baseUrl.replace('https://', '') + "=w1080-h1920";
+}
 
 export const TilePhotoUrl = function (photo) {
   return "/api/photo/" + photo.baseUrl.replace('https://', '') + "w128-h128";
@@ -55,6 +64,7 @@ export const GetAverageColor = function (photo, src, resizeOpts) {
     tile = tile.rgba8().resize(resizeOpts);
     let avg = GetAverageColorOfTile(tile);
     photo.image = tile;
+    photo.imageUrl = FullPhotoUrl(photo);
     photo.averageColor = avg;
   });
 }
