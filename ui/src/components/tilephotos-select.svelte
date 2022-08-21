@@ -26,6 +26,12 @@
     $TilePhotos = [...$TilePhotos, photo];
   }
 
+  const SelectAllPhotos = function () {
+    $Photos.photos.forEach(function (photo) {
+      SelectPhoto(photo, document.getElementById("a-"+photo.id))
+    });
+  }
+
   const DeselectPhoto = (id) => {
     $TilePhotos = $TilePhotos.filter(photo => photo.id !== id)
   }
@@ -34,6 +40,13 @@
 </script>
 
 <section class="section">
+  <nav class="level">
+    <div class="level-left">
+      <div class="level-item">
+        <a on:click={SelectAllPhotos} class="button is-primary">Select All</a>
+      </div>
+    </div>
+  </nav>
   <div class="columns">
     <div class="column is-one-fifth">
       {#each $ColorPhotos as color}
@@ -48,7 +61,7 @@
       <div class="columns is-gapless is-multiline is-mobile">
         {#each $Photos.photos as photo}
           <div class="column is-1">
-            <a on:click|once={SelectPhoto(photo, this)} href="#">
+            <a id="a-{photo.id}" on:click|once={SelectPhoto(photo, this)} href="#">
               <ThumbPhoto photo={photo} />
             </a>
           </div>

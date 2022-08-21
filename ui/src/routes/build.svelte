@@ -2,8 +2,9 @@
   import PhotoFilter from '../components/photofilter.svelte';
   import MainPhotoSelect from '../components/mainphoto-select.svelte';
   import TilePhotosSelect from '../components/tilephotos-select.svelte';
-  import TestTiles from '../components/testtiles.svelte';
-  import PhotoMosaic from '../components/photomosaic.svelte';
+  import GridTiles from '../components/gridtiles.svelte';
+  import MainPhotoPreview from '../components/mainphoto-preview.svelte';
+  import Mosaic from '../components/mosaic.svelte';
 
   let activeTab = "search";
 </script>
@@ -29,10 +30,16 @@
           <span>Select Tiles</span>
         </a>
       </li>
-      <li class={activeTab == "test" ? "is-active" : ""}>
-        <a on:click={() => activeTab = "test"}>
+      <li class={activeTab == "grid" ? "is-active" : ""}>
+        <a on:click={() => activeTab = "grid"}>
           <span class="icon"><i class="fas fa-film" aria-hidden="true"></i></span>
-          <span>Test Tiles</span>
+          <span>Preview Tiles</span>
+        </a>
+      </li>
+      <li class={activeTab == "preview" ? "is-active" : ""}>
+        <a on:click={() => activeTab = "preview"}>
+          <span class="icon"><i class="fas fa-film" aria-hidden="true"></i></span>
+          <span>Preview Main</span>
         </a>
       </li>
       <li class={activeTab == "mosaic" ? "is-active" : ""}>
@@ -52,10 +59,13 @@
   <div class={activeTab == "tiles" ? "" : "is-hidden"}>
     <TilePhotosSelect />
   </div>
-  <div class={activeTab == "test" ? "" : "is-hidden"}>
-    <TestTiles />
+  <div class={activeTab == "grid" ? "" : "is-hidden"}>
+    <GridTiles />
+  </div>
+  <div class={activeTab == "preview" ? "" : "is-hidden"}>
+    <MainPhotoPreview />
   </div>
   <div class={activeTab == "mosaic" ? "" : "is-hidden"}>
-    <PhotoMosaic />
+    <Mosaic />
   </div>
 </section>

@@ -7,6 +7,9 @@ export const MainPhoto = writable(null);
 export const TilePhotos = writable([]);
 export const TileWidth = writable(50);
 export const TileHeight = writable(50);
+export const TargetWidth = writable(1920);
+export const TargetHeight = writable(1080);
+export const TargetModes = writable(['normal', 'src-in', 'screen', 'multiply', 'difference', 'exclusion']);
 export const ColorPhotos = writable(['black', 'white', 'red', 'blue', 'orange', 'yellow', 'grey', 'pink', 'purple', 'green', 'light-blue']);
 
 export const MainPhotoUrl = derived(
