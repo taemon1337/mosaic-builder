@@ -7,7 +7,7 @@
 
   onMount(() => {
     photo.imageElement.addEventListener('imaged', (e) => {
-      if (photo.image) {
+      if (canvas && photo.image) {
         let ctx = canvas.getContext('2d');
         ctx.drawImage(photo.image.getCanvas(), 0, 0);
       } else {

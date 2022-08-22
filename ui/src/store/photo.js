@@ -1,6 +1,5 @@
 import { writable, derived } from 'svelte/store';
 import { Image } from 'image-js';
-import { Search, SearchWithFilter } from '$lib/api.js';
 
 export const Photos = writable({photos: []});
 export const MainPhoto = writable(null);
@@ -84,12 +83,4 @@ export const GetAverageColor = function (photo, src, cropOpts) {
     photo.averageColor = avg;
     photo.imageElement.dispatchEvent(photo.imageElement.imaged);
   });
-}
-
-export const Load = function () {
-  return Search().then(resp => Photos.set(resp))
-}
-
-export const Filter = function (filter) {
-  return SearchWithFilter(filter).then(resp => Photos.set(resp))
 }

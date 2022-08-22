@@ -7,7 +7,7 @@ import passport from 'passport';
 import cors from 'cors';
 import oauth from 'passport-google-oauth';
 import { SearchPages, RefreshRetry, Download, Origins } from './api.js';
-//import { handler } from './build/handler.js';
+import { handler } from './build/handler.js';
 
 const app = express();
 const GoogleStrategy = oauth.OAuth2Strategy;
@@ -98,7 +98,7 @@ app.get('/auth/google/callback',
   function(req, res) {
     // Successful authentication, redirect success.
     req.session.save(() => {
-      res.redirect('http://localhost:5173');
+      res.redirect(process.env.REDIRECT_URL);
     });
   });
 
@@ -153,8 +153,10 @@ app.get('/api/photo/*', RequireAuth, (req, res) => {
   });
 });
 
-// let SvelteKit handle everything else, including serving prerendered pages and static assets
-//app.use(handler);
+if (process.env.NODE_ENV == "production") {
+  // let SvelteKit handle everything else, including serving prerendered pages and static assets
+  app.use(handler);
+}
 
 const port = process.env.PORT || 3000;
 const host = process.env.HOST || '0.0.0.0';

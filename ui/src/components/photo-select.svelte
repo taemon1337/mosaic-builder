@@ -1,9 +1,10 @@
 <script>
-  import { Filter, Photos, MainPhoto, MainPhotoUrl, TilePhotos, ColorPhotos, GetAverageColor, TileWidth, TileHeight, TargetWidth, TargetHeight, TargetScale, Cropping } from "../store/photo.js";
+  import { Photos, MainPhoto, MainPhotoUrl, TilePhotos, ColorPhotos, GetAverageColor, TileWidth, TileHeight, TargetWidth, TargetHeight, TargetScale, Cropping } from "../store/photo.js";
   import { CONTENT_CATEGORY } from '$lib/constants.js';
   import ThumbPhoto from '../components/thumbphoto.svelte';
   import ThumbCanvas from '../components/thumbcanvas.svelte';
   import * as smartcrop from 'smartcrop';
+  import { SearchWithFilter } from '$lib/api.js';
 
   let main;
   let includedContentCategories = [];
@@ -11,22 +12,37 @@
   let pageSize = 100;
   let maxPages = 3;
 
+  const Filter = function (filter) {
+    return SearchWithFilter(filter).then(resp => {
+      if (resp && resp.photos) {
+        $Photos = { photos: [...$Photos.photos, ...resp.photos]}
+      }
+    });
+  }
+
   const SelectTilePhoto = (photo, el) => {
     let found = $TilePhotos.filter(p => p.id == photo.id);
     if (found.length) { return; } // already selected
 
     let img = el.children[0];
-    smartcrop.crop(img, { width: $TileWidth, height: $TileHeight}).then(function (suggest) {
-      let canvas = document.createElement('canvas');
-      let ctx = canvas.getContext('2d');
-      canvas.width = img.width;
-      canvas.height = img.height;
-      ctx.drawImage(img, 0, 0);
-      photo.imageElement = img;
-      photo.imageElement.imaged = new Event('imaged');
-      GetAverageColor(photo, img.src, suggest.topCrop);
-      $TilePhotos = [...$TilePhotos, photo]
-    });
+    console.log(photo.id, img);
+    try {
+      smartcrop.crop(img, { width: $TileWidth, height: $TileHeight}).then(function (suggest) {
+        let canvas = document.createElement('canvas');
+        let ctx = canvas.getContext('2d');
+        canvas.width = img.width;
+        canvas.height = img.height;
+        ctx.drawImage(img, 0, 0);
+        photo.imageElement = img;
+        photo.imageElement.imaged = new Event('imaged');
+        GetAverageColor(photo, img.src, suggest.topCrop);
+        $TilePhotos = [...$TilePhotos, photo]
+      }).catch(function (err) {
+        console.log(photo.id, err);
+      });
+    } catch (e) {
+      console.log('caught image processing error:', e);
+    }
   }
 
   // if the main photo is already selected, then select photo tile
@@ -160,7 +176,7 @@
           Selected Tile Photos <span class="is-small">({$TilePhotos.length})</span>
         </p>
         {#each $TilePhotos as photo}
-        <a on:click={DeselectTilePhoto(photo.id)} href="#">
+        <a on:click|once={DeselectTilePhoto(photo.id)} href="#">
           <ThumbCanvas photo={photo} />
         </a>
         {/each}

@@ -1,10 +1,14 @@
 #!/bin/bash
 
+. ~/.bash_profile
 WD=$(dirname "$(readlink -f -- "$0")")
 PROJECT_NAME=$(basename "${WD}")
 DEV_IMAGE=${PROJECT_NAME}-dev
 SERVER_IMAGE=${PROJECT_NAME}-server
-PROD_IMAGE=${PROJECT_NAME}-prod
+DOCKER_USER=${DOCKER_USER:-""}
+PROD_IMAGE=${DOCKER_USER}/${PROJECT_NAME}-prod
+PROD_TAG=latest
+PROD_ENV="-e REDIRECT_URL=http://localhost:3000 -e GOOGLE_CLIENT_ID=${GOOGLE_CLIENT_ID} -e GOOGLE_CLIENT_SECRET=${GOOGLE_CLIENT_SECRET} -e SESSION_SECRET=${SESSION_SECRET}"
 UIDIR=${WD}/ui
 SERVERDIR=${WD}/server
 SERVER_PORTS="-p 3000:3000"
@@ -73,6 +77,31 @@ _server() {
   esac
 }
 
+_release() {
+  case "$1" in
+    build)
+      echo "Building release server docker image..."
+      docker run --rm -it -v ${PWD}:${PWD} -w ${PWD}/ui --net ${DOCKER_NET} ${DOCKER_USER} ${DOCKER_PORTS} ${DEV_IMAGE} npm run build
+      docker buildx build -f ${SERVERDIR}/Dockerfile -t ${PROD_IMAGE}:${PROD_TAG} ${SERVERDIR}
+      shift
+      ;;
+    push)
+      shift
+      docker push ${PROD_IMAGE}:${PROD_TAG}
+      ;;
+    start)
+      shift
+      echo "Starting ${PROD_IMAGE}:${PROD_TAG} docker image..."
+      docker run --rm -it ${PROD_ENV} --net ${DOCKER_NET} ${SERVER_PORTS} ${PROD_IMAGE}:${PROD_TAG}
+      ;;
+    exec)
+      shift
+      echo "Starting shell ${PROD_IMAGE}:${PROD_TAG} docker image..."
+      docker run --rm -it ${PROD_ENV} --net ${DOCKER_NET} ${SERVER_PORTS} ${PROD_IMAGE}:${PROD_TAG} bash
+      ;;
+  esac
+}
+
 _main() {
   case "$1" in
     ui*)
@@ -82,6 +111,10 @@ _main() {
     serve*)
       shift
       _server "${@}"
+      ;;
+    rel*)
+      shift
+      _release "${@}"
       ;;
     *)
       _help;;

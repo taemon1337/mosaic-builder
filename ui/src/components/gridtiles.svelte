@@ -86,6 +86,24 @@
       </div>
       <div class="level-item">
         <div class="select">
+          <select bind:value={$TileWidth}>
+            {#each [10,20,30,40,50,100,150,200,300,400,500] as s}
+            <option value={s}>{s} pixels wide</option>
+            {/each}
+          </select>
+        </div>
+      </div>
+      <div class="level-item">
+        <div class="select">
+          <select bind:value={$TileHeight}>
+            {#each [10,20,30,40,50,100,150,200,300,400,500] as s}
+            <option value={s}>{s} pixels high</option>
+            {/each}
+          </select>
+        </div>
+      </div>
+      <div class="level-item">
+        <div class="select">
           <select bind:value={$AllowDuplicateTiles}>
             <option value=1>Allow Tile Duplicates</option>
             <option value=0>Do not reuse tiles until all have been used</option>
