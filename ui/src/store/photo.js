@@ -7,6 +7,7 @@ export const MainPhoto = writable(null);
 export const TilePhotos = writable([]);
 export const TileWidth = writable(30);
 export const TileHeight = writable(30);
+export const TileIndex = writable([]); // store the order of tiles
 export const TargetWidth = writable(1920);
 export const TargetHeight = writable(1080);
 export const TargetScale = writable(1);

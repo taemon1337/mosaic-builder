@@ -1,5 +1,5 @@
 <script>
-  import { TilePhotos, TileWidth, TileHeight, TargetWidth, TargetHeight, AllowDuplicateTiles, GetAverageColorOfTile } from "../store/photo.js";
+  import { TilePhotos, TileIndex, TileWidth, TileHeight, TargetWidth, TargetHeight, AllowDuplicateTiles, GetAverageColorOfTile } from "../store/photo.js";
   import { FindAndRemoveClosestTileByColor } from '$lib/colors.js';
   import { Image } from 'image-js';
 
@@ -44,6 +44,7 @@
     let w = $TileWidth;
     let h = $TileHeight;
     let tiles = [...$TilePhotos];
+    let tileIndex = [];
     let main = document.getElementById("main-canvas");
     let mainctx = main.getContext('2d');
     let mainimage = Image.fromCanvas(main);
@@ -66,9 +67,11 @@
         let avg = GetAverageColorOfTile(crop);
         let tile = FindAndRemoveClosestTileByColor(avg, tiles, $AllowDuplicateTiles);
         let img = tile.image.resize({ width: $TileWidth, height: $TileHeight })
+        tileIndex.push(tile.id);
         ctx.drawImage(img.getCanvas(), x, y);
       }
     }
+    TileIndex.set(tileIndex);
   }
 </script>
 

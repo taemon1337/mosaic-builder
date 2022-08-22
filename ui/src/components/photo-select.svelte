@@ -1,5 +1,5 @@
 <script>
-  import { Filter, Photos, MainPhoto, MainPhotoUrl, TilePhotos, ColorPhotos, GetAverageColor, TileWidth, TileHeight, Cropping } from "../store/photo.js";
+  import { Filter, Photos, MainPhoto, MainPhotoUrl, TilePhotos, ColorPhotos, GetAverageColor, TileWidth, TileHeight, TargetWidth, TargetHeight, TargetScale, Cropping } from "../store/photo.js";
   import { CONTENT_CATEGORY } from '$lib/constants.js';
   import ThumbPhoto from '../components/thumbphoto.svelte';
   import ThumbCanvas from '../components/thumbcanvas.svelte';
@@ -34,7 +34,6 @@
     if ($MainPhotoUrl) {
       SelectTilePhoto(photo, el);
     } else {
-      console.log('[MAIN] setting main photo', photo);
       MainPhoto.set(photo);
     }
   }
@@ -86,6 +85,18 @@
       </div>
       <div class="level-item">
         <a on:click={ClearAllPhotos} class="button is-primary">Clear All Photos</a>
+      </div>
+      <div class="level-item">
+        <div class="select">
+          <select bind:value={$TargetScale}>
+            <option value=1 selected>Select scale size (mosaic / tiles)</option>
+            {#each [1,2,3,4,5,6,7,8,9,10] as x}
+            <option value={x}>
+              {x}x - {$TargetWidth * x}x{$TargetHeight * x} - {$TileWidth * x}x{$TileHeight * x}
+            </option>
+            {/each}
+          </select>
+        </div>
       </div>
       <div class="level-item">
         <input class="input" type="number" bind:value={pageSize} />

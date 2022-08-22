@@ -1,22 +1,72 @@
 <script>
-  import { TargetWidth, TargetHeight, TargetModes } from "../store/photo.js";
+  import { TilePhotos, TileIndex, TargetWidth, TargetHeight, TargetScale, TargetModes, TileWidth, TileHeight } from "../store/photo.js";
+  import { Image } from 'image-js';
+  import * as smartcrop from 'smartcrop';
 
   let mosaic;
   let mode = 'screen';
+  let scale = 1;
 
-  const buildMosaic = function () {
+  const FindTile = function (id) {
+    return $TilePhotos.filter(p => p.id == id).pop();
+  }
+
+  const getBase64Image = function (photo, size) {
+    let el = document.getElementById("a-" + photo.id);
+    let c = document.createElement("canvas");
+    let ctx = c.getContext('2d');
+    let img = el.children[0];
+    c.width = img.width;
+    c.height = img.height;
+    ctx.drawImage(img, 0, 0);
+    let dataURL = c.toDataURL("image/jpeg");
+    return dataURL.replace(/^data:image\/(png|jpg);base64,/, "");
+  }
+
+  const buildMosaic = async function () {
     console.log('building mosaic...');
+    resetMosaic();
     let main = document.getElementById('main-canvas');
     let grid = document.getElementById('grid-canvas');
+    let tileIndex = [...$TileIndex];
+    let progress = 0;
+    let totalTiles = 0;
 
     let ctx = mosaic.getContext('2d');
     let mainctx = main.getContext('2d');
     let gridctx = grid.getContext('2d');
 
-    mosaic.width = $TargetWidth;
-    mosaic.height = $TargetHeight;
+    let mainimg = Image.fromCanvas(main);
+    let gridimg = Image.fromCanvas(grid);
 
-    ctx.drawImage(grid, 0, 0);
+    let resizeOpts = { width: $TargetWidth * $TargetScale, height: $TargetHeight * $TargetScale };
+    let tileOpts = { width: $TileWidth * $TargetScale, height: $TileHeight * $TargetScale };
+    totalTiles = Math.floor(($TargetWidth * $TargetHeight) / ($TileWidth * $TileHeight));
+
+    mosaic.width = resizeOpts.width;
+    mosaic.height = resizeOpts.height;
+    main.width = resizeOpts.width;
+    main.height = resizeOpts.height;
+
+    console.log('reloading and resizing all tile photos...');
+    for (let x = 0; x < resizeOpts.width; x+=tileOpts.width) {
+      for (let y = 0; y < resizeOpts.height; y+=tileOpts.height) {
+        let photoId = tileIndex.splice(0,1);
+        let photo = FindTile(photoId);
+        let dataurl = getBase64Image(photo, tileOpts);
+        let img = await Image.load(dataurl);
+        img = img.resize(tileOpts);
+        smartcrop.crop(img.getCanvas(), tileOpts).then(function (suggest) {
+          img = img.crop(suggest.topCrop);
+          ctx.drawImage(img.getCanvas(), x, y);
+        });
+
+        progress++;
+      }
+    }
+
+    mainimg = mainimg.resize(resizeOpts);
+    mainctx.drawImage(mainimg.getCanvas(), 0, 0);
     mainctx.blendOnto(ctx, mode);
     console.log('mosaic done');
   }
@@ -42,8 +92,22 @@
           </select>
         </div>
       </div>
+      <div class="level-item">
+        <div class="select">
+          <select bind:value={$TargetScale}>
+            <option value=1 selected>Select scale size (mosaic / tiles)</option>
+            {#each [1,2,3,4,5,6,7,8,9,10] as x}
+            <option value={x}>
+              {x}x - {$TargetWidth * x}x{$TargetHeight * x} - {$TileWidth * x}x{$TileHeight * x}
+            </option>
+            {/each}
+          </select>
+        </div>
+      </div>
     </div>
     <div class="level-right">
+      <p class="help is-info">Size will be {$TargetWidth * $TargetScale}x{$TargetHeight * $TargetScale}</p>
+      <p class="help is-info"> Tiles will be {$TileWidth * $TargetScale}x{$TileHeight * $TargetScale}</p>
       <div class="level-item">
         <a on:click={resetMosaic} class="button is-primary">Clear/Reset</a>
       </div>
@@ -55,3 +119,9 @@
     </div>
   </div>
 </section>
+
+<style>
+  input.input {
+    width: 50px;
+  }
+</style>

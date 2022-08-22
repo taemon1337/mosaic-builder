@@ -1,7 +1,8 @@
 <script>
+  import { TileWidth, TileHeight, TargetScale } from "../store/photo.js";
   export let photo;
-  let width = "64";
-  let height = "64";
+  let width = $TileWidth * $TargetScale;
+  let height = $TileHeight * $TargetScale;
 
   const Url = function (photo) {
     if (photo.id) {
