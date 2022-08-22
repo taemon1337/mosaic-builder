@@ -31,9 +31,44 @@ export const Search = function (user, params, opts) {
   }).catch(RefreshRetry(user, params, opts));
 }
 
+export const SearchPages = function (user, params, opts) {
+  return new Promise(function (resolve, reject) {
+    let maxPages = 10;
+    let photos = [];
+
+    let handleResponse = function (o) {
+      return function (resp) {
+        resp.photos.forEach(function(photo) {
+          photos.push(photo);
+        });
+        if (resp.nextPageToken) {
+          return { nextPageToken: resp.nextPageToken, pageCount: o.pageCount + 1 };
+        } else {
+          resolve({ photos: photos, parameters: params });
+        }
+      }
+    };
+
+    let SearchNext = function (o) {
+      console.log("Searching page " + o.pageCount);
+
+      if (o.nextPageToken) {
+        params.pageToken = o.nextPageToken;
+      }
+
+      if (o.pageCount < maxPages) {
+        Search(user, params, opts).then(handleResponse(o)).then(SearchNext).catch(reject);
+      } else {
+        resolve({ photos: photos, parameters: params });
+      }
+    }
+
+    SearchNext({ photos: [], pageCount: 0, nextPageToken: null });
+  });
+}
+
 export const Download = function (user, params, opts) {
   opts = Object.assign({retries: 1, func: 'download'}, opts);
-  console.log("[GET] " + params.url);
   return fetch(params.url, {
     'Authorization': 'Bearer ' + user.token,
   }).catch(RefreshRetry(user, params, opts));
@@ -77,6 +112,6 @@ export const ParseSearchResponse = function (body) {
 
   photos = photos.concat(items);
 
-  return photos
+  return { photos: photos, nextPageToken: body.nextPageToken }
 }
 

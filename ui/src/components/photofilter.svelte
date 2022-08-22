@@ -1,3 +1,6 @@
+<script>
+</script>
+
 <nav class="panel">
   <p class="panel-heading">
     Filter Photos

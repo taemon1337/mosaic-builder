@@ -6,7 +6,7 @@ import bodyParser from 'body-parser';
 import passport from 'passport';
 import cors from 'cors';
 import oauth from 'passport-google-oauth';
-import { Search, RefreshRetry, Download, Origins } from './api.js';
+import { SearchPages, RefreshRetry, Download, Origins } from './api.js';
 //import { handler } from './build/handler.js';
 
 const app = express();
@@ -105,9 +105,11 @@ app.get('/auth/google/callback',
 app.get('/api/search', RequireAuth, (req, res) => {
   const filters = {contentFilter: {}, mediaTypeFilter: {mediaTypes: ['PHOTO']}};
   const parameters = {filters};
+  let pageCount = 0;
+  let maxPages = 10;
 
-  Search(req.user, parameters).then(function (photos) {
-    res.status(200).send({photos: photos, parameters: parameters})
+  SearchPages(req.user, parameters).then(function (resp) {
+    res.status(200).send({photos: resp.photos, parameters: parameters})
   }).catch(function (err) {
     console.log("ERROR:500:/api/search", err);
     res.status(500).send(err);
