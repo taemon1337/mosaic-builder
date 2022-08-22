@@ -1,6 +1,6 @@
 import { writable, derived } from 'svelte/store';
 import { Image } from 'image-js';
-import { Search } from '$lib/api.js';
+import { Search, SearchWithFilter } from '$lib/api.js';
 
 export const Photos = writable({photos: []});
 export const MainPhoto = writable(null);
@@ -12,6 +12,7 @@ export const TargetHeight = writable(1080);
 export const TargetScale = writable(1);
 export const TargetModes = writable(['normal', 'src-in', 'screen', 'multiply', 'difference', 'exclusion']);
 export const AllowDuplicateTiles = writable(0);
+export const Cropping = writable(0);
 export const ColorPhotos = writable(['black', 'white', 'red', 'blue', 'orange', 'yellow', 'grey', 'pink', 'purple', 'green', 'light-blue']);
 
 export const MainPhotoUrl = derived(
@@ -86,4 +87,8 @@ export const GetAverageColor = function (photo, src, cropOpts) {
 
 export const Load = function () {
   return Search().then(resp => Photos.set(resp))
+}
+
+export const Filter = function (filter) {
+  return SearchWithFilter(filter).then(resp => Photos.set(resp))
 }

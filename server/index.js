@@ -105,8 +105,6 @@ app.get('/auth/google/callback',
 app.get('/api/search', RequireAuth, (req, res) => {
   const filters = {contentFilter: {}, mediaTypeFilter: {mediaTypes: ['PHOTO']}};
   const parameters = {filters};
-  let pageCount = 0;
-  let maxPages = 10;
 
   SearchPages(req.user, parameters).then(function (resp) {
     res.status(200).send({photos: resp.photos, parameters: parameters})
@@ -115,6 +113,36 @@ app.get('/api/search', RequireAuth, (req, res) => {
     res.status(500).send(err);
   });
 });
+
+app.post('/api/filter', RequireAuth, (req, res) => {
+  const filters = {contentFilter: {}, mediaTypeFilter: {mediaTypes: ['PHOTO']}};
+  const parameters = {filters};
+  const opts = {};
+
+  if (req.body.maxPages) {
+    opts.maxPages = req.body.maxPages;
+  }
+
+  if (req.body.pageSize) {
+    opts.pageSize = req.body.pageSize;
+  }
+
+  if (req.body.includedContentCategories) {
+    filters.contentFilter.includedContentCategories = [req.body.includedContentCategories];
+  }
+
+  if (req.body.excludedContentCategories) {
+    filters.contentFilter.excludedContentCategories = [req.body.excludedContentCategories];
+  }
+
+  SearchPages(req.user, parameters, opts).then(function (resp) {
+    res.status(200).send({photos: resp.photos, parameters: parameters})
+  }).catch(function (err) {
+    console.log("ERROR:500:/api/filter", err);
+    res.status(500).send(err);
+  });
+});
+
 
 app.get('/api/photo/*', RequireAuth, (req, res) => {
   Download(req.user, { url: "https://" + req.originalUrl.replace("/api/photo/", "") }).then(function (resp) {

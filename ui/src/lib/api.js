@@ -19,6 +19,20 @@ export const Search = function () {
     })
 }
 
+export const SearchWithFilter = function (filter) {
+  filter = Object.assign({}, filter,{ mediaTypes: ['PHOTO'] });
+  return fetch('/api/filter', {
+    credentials: 'include',
+    method: 'POST',
+    body: JSON.stringify(filter),
+    headers: {
+      'Content-Type': 'application/json; charset=UTF-8',
+    }
+  }).then(resp => {
+    return resp.ok ? resp.json() : null;
+  })
+}
+
 export const GetPhoto = function (domain, path) {
   return fetch('/api/photo', {
     credentials: 'include',

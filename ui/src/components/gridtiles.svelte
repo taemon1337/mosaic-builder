@@ -82,7 +82,6 @@
         <a on:click={computeGrid} class="button is-primary">Arrange Tile Grid</a>
       </div>
       <div class="level-item">
-        ALLOWING: {$AllowDuplicateTiles}
         <div class="select">
           <select bind:value={$AllowDuplicateTiles}>
             <option value=1>Allow Tile Duplicates</option>

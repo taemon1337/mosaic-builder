@@ -33,7 +33,7 @@ export const Search = function (user, params, opts) {
 
 export const SearchPages = function (user, params, opts) {
   return new Promise(function (resolve, reject) {
-    let maxPages = 10;
+    let maxPages = opts.maxPages || 3;
     let photos = [];
 
     let handleResponse = function (o) {

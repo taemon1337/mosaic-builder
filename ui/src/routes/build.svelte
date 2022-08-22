@@ -1,33 +1,19 @@
 <script>
-  import PhotoFilter from '../components/photofilter.svelte';
-  import MainPhotoSelect from '../components/mainphoto-select.svelte';
-  import TilePhotosSelect from '../components/tilephotos-select.svelte';
+  import PhotoSelect from '../components/photo-select.svelte';
   import GridTiles from '../components/gridtiles.svelte';
   import MainPhotoPreview from '../components/mainphoto-preview.svelte';
   import Mosaic from '../components/mosaic.svelte';
 
-  let activeTab = "search";
+  let activeTab = "select";
 </script>
 
 <section class="section">
   <div class="tabs is-toggle is-fullwidth">
     <ul>
-      <li class={activeTab == "search" ? "is-active" : ""}>
-        <a on:click={() => activeTab = "search"}>
-          <span class="icon"><i class="fas fa-image" aria-hidden="true"></i></span>
-          <span>Load Photos</span>
-        </a>
-      </li>
-      <li class={activeTab == "main" ? "is-active" : ""}>
-        <a on:click={() => activeTab = "main"}>
+      <li class={activeTab == "select" ? "is-active" : ""}>
+        <a on:click={() => activeTab = "select"}>
           <span class="icon"><i class="fas fa-music" aria-hidden="true"></i></span>
-          <span>Select Photo</span>
-        </a>
-      </li>
-      <li class={activeTab == "tiles" ? "is-active" : ""}>
-        <a on:click={() => activeTab = "tiles"}>
-          <span class="icon"><i class="fas fa-film" aria-hidden="true"></i></span>
-          <span>Select Tiles</span>
+          <span>Select Photos</span>
         </a>
       </li>
       <li class={activeTab == "preview" ? "is-active" : ""}>
@@ -50,14 +36,8 @@
       </li>
     </ul>
   </div>
-  <div class={activeTab == "search" ? "" : "is-hidden"}>
-    <PhotoFilter />
-  </div>
-  <div class={activeTab == "main" ? "" : "is-hidden"}>
-    <MainPhotoSelect />
-  </div>
-  <div class={activeTab == "tiles" ? "" : "is-hidden"}>
-    <TilePhotosSelect />
+  <div class={activeTab == "select" ? "" : "is-hidden"}>
+    <PhotoSelect />
   </div>
   <div class={activeTab == "preview" ? "" : "is-hidden"}>
     <MainPhotoPreview />
