@@ -2251,6 +2251,11 @@
   "resolved" "https://registry.npmjs.org/slash/-/slash-3.0.0.tgz"
   "version" "3.0.0"
 
+"smartcrop@^2.0.5":
+  "integrity" "sha512-aXoHTM8XlC51g96kgZkYxZ2mx09/ibOrIVLiUNOFozV/MHmFSgEr1/5CKVBoFD5vd+re2wSy0xra21CyjRITzA=="
+  "resolved" "https://registry.npmjs.org/smartcrop/-/smartcrop-2.0.5.tgz"
+  "version" "2.0.5"
+
 "sorcery@^0.10.0":
   "integrity" "sha512-R5ocFmKZQFfSTstfOtHjJuAwbpGyf9qjQa1egyhvXSbM7emjrtLXtGdZsDJDABC85YBfVvrOiGWKSYXPKdvP1g=="
   "resolved" "https://registry.npmjs.org/sorcery/-/sorcery-0.10.0.tgz"

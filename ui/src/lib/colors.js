@@ -15,7 +15,7 @@ export const YUV2RGB = function (yuv) {
   return rgb;
 }
 
-export const FindAndRemoveClosestTileByColor = function (color, tiles) {
+export const FindAndRemoveClosestTileByColor = function (color, tiles, allowDuplicateTiles) {
   let yuv = RGB2YUV(color);
   let diff = 255*3;
   let idx = 0;
@@ -25,12 +25,14 @@ export const FindAndRemoveClosestTileByColor = function (color, tiles) {
     let photodiff = Math.abs(avg[0] - yuv[0]) + Math.abs(avg[1] - yuv[1]) + Math.abs(avg[2] - yuv[2]);
 
     if (photodiff < diff) {
-      console.log("FOUND CLOSER TILE BY COLOR", photodiff);
       diff = photodiff;
       idx = i;
     }
   });
 
-  return tiles[idx];
-//  return tiles.splice(idx, 1).pop(); // return tile and remove it from tiles
+  if (allowDuplicateTiles == 1) {
+    return tiles[idx]; // return tile but dont remove it
+  } else {
+    return tiles.splice(idx, 1).pop(); // return tile and remove it from tiles
+  }
 }

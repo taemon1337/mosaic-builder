@@ -5,11 +5,13 @@ import { Search } from '$lib/api.js';
 export const Photos = writable({photos: []});
 export const MainPhoto = writable(null);
 export const TilePhotos = writable([]);
-export const TileWidth = writable(20);
-export const TileHeight = writable(20);
+export const TileWidth = writable(30);
+export const TileHeight = writable(30);
 export const TargetWidth = writable(1920);
 export const TargetHeight = writable(1080);
+export const TargetScale = writable(1);
 export const TargetModes = writable(['normal', 'src-in', 'screen', 'multiply', 'difference', 'exclusion']);
+export const AllowDuplicateTiles = writable(0);
 export const ColorPhotos = writable(['black', 'white', 'red', 'blue', 'orange', 'yellow', 'grey', 'pink', 'purple', 'green', 'light-blue']);
 
 export const MainPhotoUrl = derived(
@@ -71,13 +73,14 @@ export const GetAverageColorOfTile = function (tile) {
   return avg;
 }
 
-export const GetAverageColor = function (photo, src, resizeOpts) {
+export const GetAverageColor = function (photo, src, cropOpts) {
   Image.load(src).then(function (tile) {
-    tile = tile.rgba8().resize(resizeOpts);
+    tile = tile.rgba8().crop(cropOpts);
     let avg = GetAverageColorOfTile(tile);
     photo.image = tile;
     photo.imageUrl = FullPhotoUrl(photo);
     photo.averageColor = avg;
+    photo.imageElement.dispatchEvent(photo.imageElement.imaged);
   });
 }
 

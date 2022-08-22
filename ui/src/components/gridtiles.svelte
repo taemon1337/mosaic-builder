@@ -1,5 +1,5 @@
 <script>
-  import { TilePhotos, TileWidth, TileHeight, TargetWidth, TargetHeight, GetAverageColorOfTile } from "../store/photo.js";
+  import { TilePhotos, TileWidth, TileHeight, TargetWidth, TargetHeight, AllowDuplicateTiles, GetAverageColorOfTile } from "../store/photo.js";
   import { FindAndRemoveClosestTileByColor } from '$lib/colors.js';
   import { Image } from 'image-js';
 
@@ -41,29 +41,30 @@
     let ctx = grid.getContext('2d');
     let x = 0;
     let y = 0;
+    let w = $TileWidth;
+    let h = $TileHeight;
     let tiles = [...$TilePhotos];
     let main = document.getElementById("main-canvas");
     let mainctx = main.getContext('2d');
     let mainimage = Image.fromCanvas(main);
-    console.log('main ctx', mainctx);
+
+    if (mainimage.width != $TargetWidth || mainimage.height != $TargetHeight) {
+      console.log('main image width:height does not match target image, did you load it?');
+      return;
+    }
 
     if (tiles.length < 1) {
       console.log('No tiles selected');
       return;
     }
 
-    for (let x = 0; x < grid.width; x+=$TileWidth) {
-      for (let y = 0; y < grid.height; y+=$TileHeight) {
-        if (tiles.length < 1) { tiles = [...$TilePhotos]; } // reset tiles if all have been used
-        let endx = x + $TileWidth;
-        let endy = y + $TileHeight;
-        if (endx > mainimage.width)  { endx = mainimage.width }
-        if (endy > mainimage.height) { endy = mainimage.height }
+    for (let x = 0; x < grid.width; x+=w) {
+      for (let y = 0; y < grid.height; y+=h) {
+        if (tiles.length < 1) { tiles = [...$TilePhotos]; } // reset tiles if all have been used (when not allow dups)
 
-        let crop = mainimage.crop({ x: x, y: y, width: endx - x, height: endy - y });
+        let crop = mainimage.crop({ x: x, y: y, width: w, height: h });
         let avg = GetAverageColorOfTile(crop);
-        let tile = FindAndRemoveClosestTileByColor(avg, tiles);
-        console.log('TILE', tile);
+        let tile = FindAndRemoveClosestTileByColor(avg, tiles, $AllowDuplicateTiles);
         let img = tile.image.resize({ width: $TileWidth, height: $TileHeight })
         ctx.drawImage(img.getCanvas(), x, y);
       }
@@ -79,6 +80,15 @@
       </div>
       <div class="level-item">
         <a on:click={computeGrid} class="button is-primary">Arrange Tile Grid</a>
+      </div>
+      <div class="level-item">
+        ALLOWING: {$AllowDuplicateTiles}
+        <div class="select">
+          <select bind:value={$AllowDuplicateTiles}>
+            <option value=1>Allow Tile Duplicates</option>
+            <option value=0>Do not reuse tiles until all have been used</option>
+          </select>
+        </div>
       </div>
     </div>
   </nav>

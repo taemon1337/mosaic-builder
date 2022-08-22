@@ -5,10 +5,11 @@
   export let main;
 
   const buildMain = function () {
-    main.width = $TargetWidth;
-    main.height = $TargetHeight;
-
     Image.load($MainPhotoUrl).then(function (img) {
+      $TargetWidth = img.width;
+      $TargetHeight = img.height;
+      main.width = img.width;
+      main.height = img.height;
       let ctx = main.getContext('2d');
 
       if (img.width != $TargetWidth || img.height != $TargetHeight) {

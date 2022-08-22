@@ -30,16 +30,16 @@
           <span>Select Tiles</span>
         </a>
       </li>
-      <li class={activeTab == "grid" ? "is-active" : ""}>
-        <a on:click={() => activeTab = "grid"}>
-          <span class="icon"><i class="fas fa-film" aria-hidden="true"></i></span>
-          <span>Preview Tiles</span>
-        </a>
-      </li>
       <li class={activeTab == "preview" ? "is-active" : ""}>
         <a on:click={() => activeTab = "preview"}>
           <span class="icon"><i class="fas fa-film" aria-hidden="true"></i></span>
           <span>Preview Main</span>
+        </a>
+      </li>
+      <li class={activeTab == "grid" ? "is-active" : ""}>
+        <a on:click={() => activeTab = "grid"}>
+          <span class="icon"><i class="fas fa-film" aria-hidden="true"></i></span>
+          <span>Preview Tiles</span>
         </a>
       </li>
       <li class={activeTab == "mosaic" ? "is-active" : ""}>
@@ -59,11 +59,11 @@
   <div class={activeTab == "tiles" ? "" : "is-hidden"}>
     <TilePhotosSelect />
   </div>
-  <div class={activeTab == "grid" ? "" : "is-hidden"}>
-    <GridTiles />
-  </div>
   <div class={activeTab == "preview" ? "" : "is-hidden"}>
     <MainPhotoPreview />
+  </div>
+  <div class={activeTab == "grid" ? "" : "is-hidden"}>
+    <GridTiles />
   </div>
   <div class={activeTab == "mosaic" ? "" : "is-hidden"}>
     <Mosaic />

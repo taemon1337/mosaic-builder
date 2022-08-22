@@ -2,16 +2,22 @@
   import { onMount } from "svelte";
   import { Load, Photos, TilePhotos, ColorPhotos, GetAverageColor, TileWidth, TileHeight } from "../store/photo.js";
   import ThumbPhoto from '../components/thumbphoto.svelte';
+  import ThumbCanvas from '../components/thumbcanvas.svelte';
+  import * as smartcrop from 'smartcrop';
 
   const SelectPhoto = (photo, el) => {
     let img = el.children[0];
-    let canvas = document.createElement('canvas');
-    let ctx = canvas.getContext('2d');
-    canvas.width = img.width;
-    canvas.height = img.height;
-    ctx.drawImage(img, 0, 0);
-    GetAverageColor(photo, img.src, {width: $TileWidth, height: $TileHeight});
-    $TilePhotos = [...$TilePhotos, photo]
+    smartcrop.crop(img, { width: $TileWidth, height: $TileHeight}).then(function (suggest) {
+      let canvas = document.createElement('canvas');
+      let ctx = canvas.getContext('2d');
+      canvas.width = img.width;
+      canvas.height = img.height;
+      ctx.drawImage(img, 0, 0);
+      photo.imageElement = img;
+      photo.imageElement.imaged = new Event('imaged');
+      GetAverageColor(photo, img.src, suggest.topCrop);
+      $TilePhotos = [...$TilePhotos, photo]
+    });
   }
 
   const SelectColor = (color) => {
@@ -75,7 +81,7 @@
         </p>
         {#each $TilePhotos as photo}
         <a on:click={DeselectPhoto(photo.id)} href="#">
-          <ThumbPhoto photo={photo} />
+          <ThumbCanvas photo={photo} />
         </a>
         {/each}
         <div class="panel-block">
