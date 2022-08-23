@@ -2,18 +2,19 @@
   import { onMount } from 'svelte';
   export let photo;
   let canvas;
-  let width = "64";
-  let height = "64";
+  let width = 64;
+  let height = 64;
 
   onMount(() => {
     photo.imageElement.addEventListener('imaged', (e) => {
       if (canvas && photo.image) {
+        canvas.width = width;
+        canvas.height = height;
+        let img = photo.image.resize({ width: width, height: height });
         let ctx = canvas.getContext('2d');
-        ctx.drawImage(photo.image.getCanvas(), 0, 0);
-      } else {
-        console.log('no image in photo', photo);
+        ctx.drawImage(img.getCanvas(), 0, 0);
       }
     }, false);
   });
 </script>
-<canvas bind:this={canvas} width={width} height={height}></canvas>
+<canvas bind:this={canvas}></canvas>

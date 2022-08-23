@@ -3,6 +3,7 @@ import { Image } from 'image-js';
 
 export const Photos = writable({photos: []});
 export const MainPhoto = writable(null);
+export const MainImage = writable(null);
 export const TilePhotos = writable([]);
 export const TileWidth = writable(30);
 export const TileHeight = writable(30);
@@ -10,9 +11,9 @@ export const TileIndex = writable([]); // store the order of tiles
 export const TargetWidth = writable(1920);
 export const TargetHeight = writable(1080);
 export const TargetScale = writable(1);
-export const TargetModes = writable(['normal', 'src-in', 'screen', 'multiply', 'difference', 'exclusion']);
+export const TargetModes = writable(['foobar', 'normal', 'src-in', 'screen', 'multiply', 'difference', 'exclusion', 'add', 'lighten', 'darken', 'overlay', 'hardlight', 'colordodge', 'colorburn', 'softlight', 'luminosity', 'color', 'hue', 'saturation', 'lightercolor', 'darkercolor']);
 export const AllowDuplicateTiles = writable(0);
-export const Cropping = writable(0);
+export const AutoCrop = writable(0);
 export const ColorPhotos = writable(['black', 'white', 'red', 'blue', 'orange', 'yellow', 'grey', 'pink', 'purple', 'green', 'light-blue']);
 
 export const MainPhotoUrl = derived(
@@ -76,7 +77,12 @@ export const GetAverageColorOfTile = function (tile) {
 
 export const GetAverageColor = function (photo, src, cropOpts) {
   Image.load(src).then(function (tile) {
-    tile = tile.rgba8().crop(cropOpts);
+    if (cropOpts.enabled) {
+      console.log('autocrop is enabled', cropOpts);
+      tile = tile.rgba8().crop(cropOpts);
+    } else {
+      tile = tile.rgba8();
+    }
     let avg = GetAverageColorOfTile(tile);
     photo.image = tile;
     photo.imageUrl = FullPhotoUrl(photo);

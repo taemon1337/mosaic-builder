@@ -1,5 +1,5 @@
 <script>
-  import { Photos, MainPhoto, MainPhotoUrl, TilePhotos, ColorPhotos, GetAverageColor, TileWidth, TileHeight, TargetWidth, TargetHeight, TargetScale, Cropping } from "../store/photo.js";
+  import { Photos, MainPhoto, MainPhotoUrl, TilePhotos, ColorPhotos, GetAverageColor, TileWidth, TileHeight, TargetWidth, TargetHeight, TargetScale, AutoCrop } from "../store/photo.js";
   import { CONTENT_CATEGORY } from '$lib/constants.js';
   import ThumbPhoto from '../components/thumbphoto.svelte';
   import ThumbCanvas from '../components/thumbcanvas.svelte';
@@ -25,17 +25,17 @@
     if (found.length) { return; } // already selected
 
     let img = el.children[0];
-    console.log(photo.id, img);
     try {
       smartcrop.crop(img, { width: $TileWidth, height: $TileHeight}).then(function (suggest) {
         let canvas = document.createElement('canvas');
         let ctx = canvas.getContext('2d');
+        let cropopts = Object.assign({ enabled: $AutoCrop }, suggest.topCrop);
         canvas.width = img.width;
         canvas.height = img.height;
         ctx.drawImage(img, 0, 0);
         photo.imageElement = img;
         photo.imageElement.imaged = new Event('imaged');
-        GetAverageColor(photo, img.src, suggest.topCrop);
+        GetAverageColor(photo, img.src, cropopts);
         $TilePhotos = [...$TilePhotos, photo]
       }).catch(function (err) {
         console.log(photo.id, err);
@@ -120,6 +120,14 @@
       <div class="level-item">
         <input class="input" type="number" bind:value={maxPages} />
       </div>
+      <div class="level-item">
+        AUTO CROP {$AutoCrop}
+        <div class="select">
+          <select bind:value={$AutoCrop}>
+            <option value=1>Auto crop tile images</option>
+            <option value=0>Do not modify tile images</option>
+          </select>
+      </div>
     </div>
     <div class="level-right">
       <div class="level-item">
@@ -133,6 +141,7 @@
   <div class="columns">
     <div class="column is-one-fifth">
       <div class="form">
+        <button on:click={SubmitFilter} type="button" class="button is-primary">Filter</button>
         {#each Object.entries(CONTENT_CATEGORY) as [key,val]}
         <div class="field">
           <label class="checkbox">
@@ -141,14 +150,13 @@
           </label>
         </div>
         {/each}
-        <button on:click={SubmitFilter} type="button" class="button is-primary">Filter</button>
       </div>
     </div>
     <div class="column is-three-fifths">
       <div class="columns is-gapless is-multiline is-mobile">
         {#each $Photos.photos as photo}
           <div class="column is-1">
-            <a id="a-{photo.id}" on:click={SelectPhoto(photo, this)} href="#">
+            <a id="a-{photo.id}" on:click|once={SelectPhoto(photo, this)} href="#">
               <ThumbPhoto photo={photo} />
             </a>
           </div>

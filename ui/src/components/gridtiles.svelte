@@ -1,5 +1,6 @@
 <script>
-  import { TilePhotos, TileIndex, TileWidth, TileHeight, TargetWidth, TargetHeight, AllowDuplicateTiles, GetAverageColorOfTile } from "../store/photo.js";
+  import { onMount } from 'svelte';
+  import { MainPhotoUrl, MainImage, TilePhotos, TileIndex, TileWidth, TileHeight, TargetWidth, TargetHeight, AllowDuplicateTiles, GetAverageColorOfTile } from "../store/photo.js";
   import { FindAndRemoveClosestTileByColor } from '$lib/colors.js';
   import { Image } from 'image-js';
 
@@ -45,33 +46,32 @@
     let h = $TileHeight;
     let tiles = [...$TilePhotos];
     let tileIndex = [];
-    let main = document.getElementById("main-canvas");
-    let mainctx = main.getContext('2d');
-    let mainimage = Image.fromCanvas(main);
 
-    if (mainimage.width != $TargetWidth || mainimage.height != $TargetHeight) {
-      console.log('main image width:height does not match target image, did you load it?');
-      return;
-    }
+    Image.load($MainPhotoUrl).then(function (mainimage) {
+      MainImage.set(mainimage);
+      console.log('loaded main image');
+      $TargetWidth = mainimage.width;
+      $TargetHeight = mainimage.height;
 
-    if (tiles.length < 1) {
-      console.log('No tiles selected');
-      return;
-    }
-
-    for (let x = 0; x < grid.width; x+=w) {
-      for (let y = 0; y < grid.height; y+=h) {
-        if (tiles.length < 1) { tiles = [...$TilePhotos]; } // reset tiles if all have been used (when not allow dups)
-
-        let crop = mainimage.crop({ x: x, y: y, width: w, height: h });
-        let avg = GetAverageColorOfTile(crop);
-        let tile = FindAndRemoveClosestTileByColor(avg, tiles, $AllowDuplicateTiles);
-        let img = tile.image.resize({ width: $TileWidth, height: $TileHeight })
-        tileIndex.push(tile.id);
-        ctx.drawImage(img.getCanvas(), x, y);
+      if (tiles.length < 1) {
+        console.log('No tiles selected');
+        return;
       }
-    }
-    TileIndex.set(tileIndex);
+
+      for (let x = 0; x < grid.width; x+=w) {
+        for (let y = 0; y < grid.height; y+=h) {
+          if (tiles.length < 1) { tiles = [...$TilePhotos]; } // reset tiles if all have been used (when not allow dups)
+
+          let crop = mainimage.crop({ x: x, y: y, width: w, height: h });
+          let avg = GetAverageColorOfTile(crop);
+          let tile = FindAndRemoveClosestTileByColor(avg, tiles, $AllowDuplicateTiles);
+          let img = tile.image.resize({ width: $TileWidth, height: $TileHeight })
+          tileIndex.push(tile.id);
+          ctx.drawImage(img.getCanvas(), x, y);
+        }
+      }
+      TileIndex.set(tileIndex);
+    });
   }
 </script>
 
@@ -111,10 +111,14 @@
         </div>
       </div>
     </div>
+    <div class="level-right">
+      <div class="level-item">
+        <span>Showing {$TilePhotos.length} tiles, Tile width: {$TileWidth}, Tile Height: {$TileHeight}</span>
+      </div>
+    </div>
   </nav>
   <div class="columns">
     <div class="column is-full">
-      <span>Showing {$TilePhotos.length} tiles, Tile width: {$TileWidth}, Tile Height: {$TileHeight}</span>
       <canvas id="grid-canvas" bind:this={grid}></canvas>
     </div>
   </div>

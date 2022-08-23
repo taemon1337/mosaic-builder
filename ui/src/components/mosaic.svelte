@@ -1,5 +1,5 @@
 <script>
-  import { TilePhotos, TileIndex, TargetWidth, TargetHeight, TargetScale, TargetModes, TileWidth, TileHeight } from "../store/photo.js";
+  import { MainImage, TilePhotos, TileIndex, TargetWidth, TargetHeight, TargetScale, TargetModes, TileWidth, TileHeight, AutoCrop } from "../store/photo.js";
   import { Image } from 'image-js';
   import * as smartcrop from 'smartcrop';
 
@@ -26,17 +26,15 @@
   const buildMosaic = async function () {
     console.log('building mosaic...');
     resetMosaic();
-    let main = document.getElementById('main-canvas');
     let grid = document.getElementById('grid-canvas');
     let tileIndex = [...$TileIndex];
     let progress = 0;
     let totalTiles = 0;
 
     let ctx = mosaic.getContext('2d');
-    let mainctx = main.getContext('2d');
     let gridctx = grid.getContext('2d');
 
-    let mainimg = Image.fromCanvas(main);
+    let mainimg = $MainImage;
     let gridimg = Image.fromCanvas(grid);
 
     let resizeOpts = { width: $TargetWidth * $TargetScale, height: $TargetHeight * $TargetScale };
@@ -45,30 +43,60 @@
 
     mosaic.width = resizeOpts.width;
     mosaic.height = resizeOpts.height;
-    main.width = resizeOpts.width;
-    main.height = resizeOpts.height;
 
     console.log('reloading and resizing all tile photos...');
     for (let x = 0; x < resizeOpts.width; x+=tileOpts.width) {
       for (let y = 0; y < resizeOpts.height; y+=tileOpts.height) {
         let photoId = tileIndex.splice(0,1);
         let photo = FindTile(photoId);
-        let dataurl = getBase64Image(photo, tileOpts);
-        let img = await Image.load(dataurl);
-        img = img.resize(tileOpts);
-        smartcrop.crop(img.getCanvas(), tileOpts).then(function (suggest) {
-          img = img.crop(suggest.topCrop);
-          ctx.drawImage(img.getCanvas(), x, y);
-        });
+        if (photo) {
+          let dataurl = getBase64Image(photo, tileOpts);
+          let img = await Image.load(dataurl);
+          img = img.resize(tileOpts);
+          smartcrop.crop(img.getCanvas(), tileOpts).then(function (suggest) {
+            if ($AutoCrop) {
+              img = img.crop(suggest.topCrop);
+            }
+            ctx.drawImage(img.getCanvas(), x, y);
+          });
+        }
 
         progress++;
       }
     }
 
     mainimg = mainimg.resize(resizeOpts);
+
+    let main = document.createElement('canvas');
+    main.width = mainimg.width;
+    main.height = mainimg.height;
+    let mainctx = main.getContext('2d');
+
     mainctx.drawImage(mainimg.getCanvas(), 0, 0);
     mainctx.blendOnto(ctx, mode);
     console.log('mosaic done');
+  }
+
+  const blendTiles = function () {
+    let grid = document.getElementById('grid-canvas');
+    let gridctx = grid.getContext('2d');
+    let ctx = mosaic.getContext('2d');
+    gridctx.blendOnto(ctx, mode);
+  }
+
+  const blendMain = function () {
+    let mainimg = $MainImage;
+    let ctx = mosaic.getContext('2d');
+    let resizeOpts = { width: $TargetWidth * $TargetScale, height: $TargetHeight * $TargetScale };
+    mainimg = mainimg.resize(resizeOpts);
+
+    let main = document.createElement('canvas');
+    main.width = mainimg.width;
+    main.height = mainimg.height;
+    let mainctx = main.getContext('2d');
+
+    mainctx.drawImage(mainimg.getCanvas(), 0, 0);
+    mainctx.blendOnto(ctx, mode);
   }
 
   const resetMosaic = function () {
@@ -82,6 +110,12 @@
     <div class="level-left">
       <div class="level-item">
         <a on:click={buildMosaic} class="button is-primary">Create Mosaic</a>
+      </div>
+      <div class="level-item">
+        <a on:click={blendMain} class="button is-default">Enhance main</a>
+      </div>
+      <div class="level-item">
+        <a on:click={blendTiles} class="button is-default">Enhance tiles</a>
       </div>
       <div class="level-item">
         <div class="select">
