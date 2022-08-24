@@ -19,6 +19,7 @@ export const TargetScale = writable(1);
 export const TargetProgress = writable(0);
 export const TargetModes = writable(['foobar', 'normal', 'src-in', 'screen', 'multiply', 'difference', 'exclusion', 'add', 'lighten', 'darken', 'overlay', 'hardlight', 'colordodge', 'colorburn', 'softlight', 'luminosity', 'color', 'hue', 'saturation', 'lightercolor', 'darkercolor']);
 export const AllowDuplicateTiles = writable(0);
+export const UniqueTiles = writable(false);
 export const AutoCrop = writable(true);
 export const ColorPhotos = writable(['black', 'white', 'red', 'blue', 'orange', 'yellow', 'grey', 'pink', 'purple', 'green', 'light-blue']);
 
@@ -114,7 +115,7 @@ export const GetAverageColor = function (photo, src, cropOpts) {
     photo.image = tile;
     photo.imageUrl = FullPhotoUrl(photo);
     photo.averageColor = avg;
-    photo.hashmap = ComputeSimilarity(tile);
+    ComputeSimilarity(tile).then((sim) => photo.hashmap = sim)
     photo.imageElement.dispatchEvent(photo.imageElement.imaged);
   });
 }

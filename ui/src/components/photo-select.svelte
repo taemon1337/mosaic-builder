@@ -2,6 +2,7 @@
   import { createEventDispatcher } from 'svelte';
   import { Photos, MainPhoto, MainPhotoUrl, TilePhotos, MinimumTiles, ColorPhotos, GetAverageColor, TileWidth, TileHeight, TargetWidth, TargetHeight, TargetScale, AutoCrop } from "../store/photo.js";
   import { CONTENT_CATEGORY } from '$lib/constants.js';
+  import { calculateSimilarity } from '$lib/hashmap.js';
   import ThumbPhoto from '../components/thumbphoto.svelte';
   import ThumbCanvas from '../components/thumbcanvas.svelte';
   import PhotoFilter from '../components/photo-filter.svelte';
@@ -15,6 +16,7 @@
   let tilesize = 150;
   let loadingPhotos = false;
   let loadingTiles = false;
+  let similarityThreshold = 80;
 
   const dispatch = createEventDispatcher();
 
@@ -36,6 +38,42 @@
 
   const emitNext = function () {
     dispatch('next');
+  }
+
+  const DetectSimilarPhotos = function () {
+    let ids = $Photos.photos.map(p => p.id);
+    let sims = $Photos.photos.map(p => p.hashmap);
+    let matched = {};
+    let deleted = [];
+    let threshold = similarityThreshold;
+
+    ids.forEach((p1, i) => {
+      ids.forEach((p2, j) => {
+        if (p1 !== p2) {
+          let pct = calculateSimilarity(sims[i], sims[j]);
+          if (pct > threshold) {
+            matched[p1] = matched[p1] || [];
+            matched[p2] = matched[p2] || [];
+            if (matched[p1].indexOf(p2) < 0) { matched[p1].push(p2); }
+            if (matched[p2].indexOf(p1) < 0) { matched[p2].push(p1); }
+          }
+        }
+      });
+    });
+
+    Object.keys(matched).forEach((id1) => {
+      matched[id1].forEach((id2) => {
+        if (deleted.indexOf(id1) < 0 && deleted.indexOf(id2) < 0) {
+          deleted.push(id1); // we only want to delete 1 of the similar images
+        }
+      });
+    });
+
+    deleted.forEach((id) => {
+      DeselectTilePhoto(id);
+    });
+
+    console.log('removed ' + deleted.length + ' similar images');
   }
 
   const SelectTilePhoto = (photo, el) => {
@@ -174,6 +212,16 @@
           </p>
 
           <div class="select is-small is-rounded mt-2 mr-2">
+            <select bind:value={similarityThreshold}>
+              {#each [50,60,70,80,90,100] as x}
+              <option value={x}>
+                {x}%
+              </option>
+              {/each}
+            </select>
+          </div>
+
+          <div class="select is-small is-rounded mt-2 mr-2">
             <select bind:value={tilesize}>
               {#each [150,200,300,400,500,1000] as x}
               <option value={x}>
@@ -207,7 +255,8 @@
         </div>
 
         <footer class="card-footer">
-          <a href="#" on:click|preventDefault={DeselectAllTiles} class="card-footer-item">Clear All Tiles</a>
+          <a href="#" on:click|preventDefault={DeselectAllTiles} class="card-footer-item">Clear All</a>
+          <a href="#" on:click|preventDefault={DetectSimilarPhotos} class="card-footer-item">Remove Similar</a>
           <a href="#" on:click|preventDefault={() => $AutoCrop = !$AutoCrop} class={$AutoCrop ? "card-footer-item" : "card-footer-item is-strikethrough"} title={$AutoCrop ? "Will autocrop tile images" : "Will not autocrop tile images"}>
             Auto Crop Tiles
           </a>

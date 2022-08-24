@@ -1,6 +1,6 @@
 <script>
   import { tick, createEventDispatcher } from 'svelte';
-  import { MainPhotoUrl, MainImage, TilePhotos, MinimumTiles, TileIndex, TileWidth, TileHeight, TileProgress, TargetWidth, TargetHeight, AllowDuplicateTiles, GetAverageColorOfTile } from "../store/photo.js";
+  import { MainPhotoUrl, MainImage, TilePhotos, MinimumTiles, TileIndex, TileWidth, TileHeight, TileProgress, TargetWidth, TargetHeight, AllowDuplicateTiles, UniqueTiles, GetAverageColorOfTile } from "../store/photo.js";
   import { FindAndRemoveClosestTileByColor } from '$lib/colors.js';
   import { Image } from 'image-js';
 
@@ -22,9 +22,15 @@
         return basicGrid();
       case "duplicate":
         AllowDuplicateTiles.set(true);
+        UniqueTiles.set(false);
         return colorMatchGrid();
       case "colormatch":
         AllowDuplicateTiles.set(false);
+        UniqueTiles.set(false);
+        return colorMatchGrid();
+      case "single":
+        AllowDuplicateTiles.set(false);
+        UniqueTiles.set(true);
         return colorMatchGrid();
       default:
         console.log("No mode selected.");
@@ -117,7 +123,14 @@
         for (let x = 0; x < grid.width; x+=w) {
           for (let y = 0; y < grid.height; y+=h) {
             progress++;
-            if (tiles.length < 1) { tiles = [...$TilePhotos]; } // reset tiles if all have been used (when not allow dups)
+            if (tiles.length < 1) {
+              if ($UniqueTiles) {
+                console.log('ran out of unique tiles in single mode, stopping');
+                return;
+              } else {
+                tiles = [...$TilePhotos]; // reset tiles
+              }
+            }
             let cropts = { x: x, y: y, width: w, height: h }
 
             if (x + w > mainimage.width) { cropts.width = mainimage.width - x }
@@ -136,10 +149,10 @@
         TileIndex.set(tileIndex);
         ClearProgress();
       } catch (e) {
-        ErrorHandler()
+        ErrorHandler(e)
       }
     } catch (e) {
-      ErrorHandler()
+      ErrorHandler(e)
     }
   }
 </script>
@@ -162,6 +175,14 @@
             Color match main photo grid
           </label>
           <p class="help">Each tile's average color is matched against the main photo</p>
+        </div>
+
+        <div class="field">
+          <label class="checkbox">
+            <input type="checkbox" id="single" checked={mode == "single"} on:click={setMode}>
+            Single mode
+          </label>
+          <p class="help">Do not duplicate any tiles, stop drawing if not enough selected</p>
         </div>
 
         <div class="field">
