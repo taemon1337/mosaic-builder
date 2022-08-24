@@ -1,9 +1,11 @@
 import { writable, derived } from 'svelte/store';
 import { Image } from 'image-js';
+import { hash } from '$lib/hashmap.js';
 
 export const Photos = writable({photos: []});
 export const MainPhoto = writable(null);
 export const MainImage = writable(null);
+export const MinimumTiles = writable(1);
 export const TilePhotos = writable([]);
 export const TileWidth = writable(30);
 export const TileHeight = writable(30);
@@ -75,10 +77,16 @@ export const GetAverageColorOfTile = function (tile) {
   return avg;
 }
 
+export const ComputeSimilarity = function (img) {
+  let c = img.getCanvas();
+  let ctx = c.getContext('2d');
+  let imgData = ctx.getImageData(0, 0, img.width, img.height);
+  return hash(imgData);
+}
+
 export const GetAverageColor = function (photo, src, cropOpts) {
   Image.load(src).then(function (tile) {
     if (cropOpts.enabled) {
-      console.log('autocrop is enabled', cropOpts);
       tile = tile.rgba8().crop(cropOpts);
     } else {
       tile = tile.rgba8();
@@ -87,6 +95,7 @@ export const GetAverageColor = function (photo, src, cropOpts) {
     photo.image = tile;
     photo.imageUrl = FullPhotoUrl(photo);
     photo.averageColor = avg;
+    photo.hashmap = ComputeSimilarity(tile);
     photo.imageElement.dispatchEvent(photo.imageElement.imaged);
   });
 }

@@ -1,7 +1,6 @@
 <script>
   import PhotoSelect from '../components/photo-select.svelte';
   import GridTiles from '../components/gridtiles.svelte';
-  import MainPhotoPreview from '../components/mainphoto-preview.svelte';
   import Mosaic from '../components/mosaic.svelte';
 
   let activeTab = "select";
@@ -9,7 +8,7 @@
 
 <section class="section">
   <div class="tabs is-toggle is-fullwidth">
-    <ul>
+    <ul class="is-hidden">
       <li class={activeTab == "select" ? "is-active" : ""}>
         <a on:click={() => activeTab = "select"}>
           <span class="icon"><i class="fas fa-music" aria-hidden="true"></i></span>
@@ -31,12 +30,12 @@
     </ul>
   </div>
   <div class={activeTab == "select" ? "" : "is-hidden"}>
-    <PhotoSelect />
+    <PhotoSelect on:next={() => activeTab = "grid"} />
   </div>
   <div class={activeTab == "grid" ? "" : "is-hidden"}>
-    <GridTiles />
+    <GridTiles on:next={() => activeTab = "mosaic"} on:prev={() => activeTab = "select"} />
   </div>
   <div class={activeTab == "mosaic" ? "" : "is-hidden"}>
-    <Mosaic />
+    <Mosaic on:prev={() => activeTab="grid"} />
   </div>
 </section>

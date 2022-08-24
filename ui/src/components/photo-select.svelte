@@ -1,5 +1,6 @@
 <script>
-  import { Photos, MainPhoto, MainPhotoUrl, TilePhotos, ColorPhotos, GetAverageColor, TileWidth, TileHeight, TargetWidth, TargetHeight, TargetScale, AutoCrop } from "../store/photo.js";
+  import { createEventDispatcher } from 'svelte';
+  import { Photos, MainPhoto, MainPhotoUrl, TilePhotos, MinimumTiles, ColorPhotos, GetAverageColor, TileWidth, TileHeight, TargetWidth, TargetHeight, TargetScale, AutoCrop } from "../store/photo.js";
   import { CONTENT_CATEGORY } from '$lib/constants.js';
   import ThumbPhoto from '../components/thumbphoto.svelte';
   import ThumbCanvas from '../components/thumbcanvas.svelte';
@@ -11,8 +12,14 @@
   let filter;
   let pageSize = 100;
   let maxPages = 3;
+  let tilesize = 150;
+  let loadingPhotos = false;
+  let loadingTiles = false;
+
+  const dispatch = createEventDispatcher();
 
   const Filter = function(evt) {
+    loadingPhotos = true;
     filter = evt.detail;
     filter.pageSize = pageSize;
     filter.maxPages = maxPages;
@@ -20,7 +27,15 @@
       if (resp && resp.photos) {
         $Photos = { photos: [...$Photos.photos, ...resp.photos]}
       }
+      loadingPhotos = false;
+    }).catch(function (e) {
+      console.warn('Error loading photos', e);
+      loadingPhotos = false;
     });
+  }
+
+  const emitNext = function () {
+    dispatch('next');
   }
 
   const SelectTilePhoto = (photo, el) => {
@@ -48,6 +63,11 @@
     }
   }
 
+  const setTileSizes = function () {
+    $TileWidth = tilesize;
+    $TileHeight = tilesize;
+  }
+
   // if the main photo is already selected, then select photo tile
   const SelectPhoto = (photo, el) => {
     if ($MainPhotoUrl) {
@@ -58,9 +78,11 @@
   }
 
   const SelectAllPhotos = function () {
+    loadingTiles = true;
     $Photos.photos.forEach(function (photo) {
       SelectTilePhoto(photo, document.getElementById("a-"+photo.id))
     });
+    loadingTiles = false;
   }
 
   const DeselectAllTiles = function () {
@@ -77,6 +99,12 @@
 
   const DeselectTilePhoto = (id) => {
     $TilePhotos = $TilePhotos.filter(photo => photo.id !== id)
+  }
+
+  const RemoveSimilar = function () {
+    $Photos.photos.forEach(function (photo, i) {
+      
+    });
   }
 </script>
 
@@ -109,13 +137,18 @@
 
           <div class="is-pulled-right mt-3 mr-2">
             <span class="is-italic is-size-7">
-              {$Photos.photos.length} photos
+              {#if loadingPhotos}
+                loading...
+              {:else}
+                {$Photos.photos.length} photos
+              {/if}
             </span>
           </div>
         </header>
         <footer class="card-footer">
           <a href="#" on:click|preventDefault={SelectAllPhotos} class="card-footer-item">Select All for Tiles</a>
           <a href="#" on:click|preventDefault={ClearAllPhotos} class="card-footer-item">Clear All Photos</a>
+          <a href="#" on:click|preventDefault={RemoveSimilar} class="card-footer-item">Clear Similar</a>
         </footer>
         <div class="card-content">
           <div class="content">
@@ -139,9 +172,24 @@
           <p class="card-header-title">
             Mosaic Tile Images
           </p>
+
+          <div class="select is-small is-rounded mt-2 mr-2">
+            <select bind:value={tilesize}>
+              {#each [150,200,300,400,500,1000] as x}
+              <option value={x}>
+                {x}x{x} tiles
+              </option>
+              {/each}
+            </select>
+          </div>
+
           <div class="is-pulled-right mt-3 mr-2">
             <span class="is-italic is-size-7">
-              {$TilePhotos.length} tiles
+              {#if loadingTiles}
+                loading...
+              {:else}
+                {$TilePhotos.length} tiles
+              {/if}
             </span>
           </div>
         </header>
@@ -166,6 +214,10 @@
       </div>
     </div>
     <div class="column is-2">
+      <div class="field">
+        <button on:click|preventDefault={emitNext} class="button is-primary is-large" data-disabled={!$MainPhotoUrl || $TilePhotos.length < $MinimumTiles}>Preview Mosaic </button>
+      </div>
+
       <div class="card">
         <header class="card-header">
           <p class="card-header-title">
@@ -193,6 +245,10 @@
 </section>
 
 <style>
+  .card {
+    height: 600px;
+    overflow: scroll;
+  }
   input.input {
     width: 60px;
   }

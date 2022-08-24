@@ -1,11 +1,15 @@
 <script>
-  import { MainImage, TilePhotos, TileIndex, TargetWidth, TargetHeight, TargetScale, TargetModes, TileWidth, TileHeight, AutoCrop } from "../store/photo.js";
+  import { createEventDispatcher } from 'svelte';
+  import { MainImage, TilePhotos, MinimumTiles, TileIndex, TargetWidth, TargetHeight, TargetScale, TargetModes, TileWidth, TileHeight, AutoCrop } from "../store/photo.js";
   import { Image } from 'image-js';
   import * as smartcrop from 'smartcrop';
 
   let mosaic;
   let mode = 'screen';
   let scale = 1;
+
+  const dispatch = createEventDispatcher();
+  const emitPrev = function () { dispatch('prev'); }
 
   const FindTile = function (id) {
     return $TilePhotos.filter(p => p.id == id).pop();
@@ -106,50 +110,62 @@
 </script>
 
 <section>
-  <nav class="level">
-    <div class="level-left">
-      <div class="level-item">
-        <a on:click={buildMosaic} class="button is-primary">Create Mosaic</a>
-      </div>
-      <div class="level-item">
-        <a on:click={blendMain} class="button is-default">Enhance main</a>
-      </div>
-      <div class="level-item">
-        <a on:click={blendTiles} class="button is-default">Enhance tiles</a>
-      </div>
-      <div class="level-item">
-        <div class="select">
-          <select value={mode}>
-            {#each $TargetModes as m}
-            <option value={m}>{m}</option>
-            {/each}
-          </select>
-        </div>
-      </div>
-      <div class="level-item">
-        <div class="select">
-          <select bind:value={$TargetScale}>
-            <option value=1 selected>Select scale size (mosaic / tiles)</option>
-            {#each [1,2,3,4,5,6,7,8,9,10] as x}
-            <option value={x}>
-              {x}x - {$TargetWidth * x}x{$TargetHeight * x} - {$TileWidth * x}x{$TileHeight * x}
-            </option>
-            {/each}
-          </select>
-        </div>
-      </div>
-    </div>
-    <div class="level-right">
-      <p class="help is-info">Size will be {$TargetWidth * $TargetScale}x{$TargetHeight * $TargetScale}</p>
-      <p class="help is-info"> Tiles will be {$TileWidth * $TargetScale}x{$TileHeight * $TargetScale}</p>
-      <div class="level-item">
-        <a on:click={resetMosaic} class="button is-primary">Clear/Reset</a>
-      </div>
-    </div>
-  </nav>
   <div class="columns">
-    <div class="column is-full">
+    <div class="column is-2">
+      <div class="form">
+        <div class="field">
+          <button on:click|preventDefault={buildMosaic} class="button is-primary is-large" disabled={!$MainImage || $TilePhotos.length < $MinimumTiles}>Generate Mosaic</button>
+        </div>
+
+        <div class="field">
+          <label class="label">Overlay Mode</label>
+          <div class="select">
+            <select value={mode}>
+              {#each $TargetModes as m}
+              <option value={m}>{m}</option>
+              {/each}
+            </select>
+          </div>
+          <p class="help">The overlay modes do not seem to make a difference currently</p>
+        </div>
+
+        <div class="field">
+          <label class="label">Target Photo Size</label>
+          <div class="select">
+            <select bind:value={$TargetScale}>
+              {#each [1,2,3,4,5,6,7,8,9,10] as x}
+              <option value={x}>
+                {x}x - {$TargetWidth * x}x{$TargetHeight * x} - {$TileWidth * x}x{$TileHeight * x} (~{x*10}MB)
+              </option>
+              {/each}
+            </select>
+          </div>
+          <p class="help">To save mosaic, right click 'Save Image As'</p>
+        </div>
+
+      </div>
+    </div>
+    <div class="column is-8">
       <canvas bind:this={mosaic}></canvas>
+    </div>
+    <div class="column is-2">
+      <div class="form">
+        <div class="field">
+          <button on:click|preventDefault={resetMosaic} class="button is-default is-large">Reset Mosaic</button>
+        </div>
+
+        <div class="field">
+          <button on:click|preventDefault={blendMain} class="button is-default">Enhance Main</button>
+        </div>
+
+        <div class="field">
+          <button on:click|preventDefault={blendTiles} class="button is-default">Enhance Tiles</button>
+        </div>
+
+        <div class="field">
+          <button on:click|preventDefault={emitPrev} class="button is-default">back</button>
+        </div>
+      </div>
     </div>
   </div>
 </section>
