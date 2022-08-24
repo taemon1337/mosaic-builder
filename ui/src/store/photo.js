@@ -13,7 +13,7 @@ export const TargetHeight = writable(1080);
 export const TargetScale = writable(1);
 export const TargetModes = writable(['foobar', 'normal', 'src-in', 'screen', 'multiply', 'difference', 'exclusion', 'add', 'lighten', 'darken', 'overlay', 'hardlight', 'colordodge', 'colorburn', 'softlight', 'luminosity', 'color', 'hue', 'saturation', 'lightercolor', 'darkercolor']);
 export const AllowDuplicateTiles = writable(0);
-export const AutoCrop = writable(0);
+export const AutoCrop = writable(true);
 export const ColorPhotos = writable(['black', 'white', 'red', 'blue', 'orange', 'yellow', 'grey', 'pink', 'purple', 'green', 'light-blue']);
 
 export const MainPhotoUrl = derived(

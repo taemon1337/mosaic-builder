@@ -50,8 +50,6 @@ export const SearchPages = function (user, params, opts) {
     };
 
     let SearchNext = function (o) {
-      console.log("Searching page " + o.pageCount);
-
       if (o.nextPageToken) {
         params.pageToken = o.nextPageToken;
       }
@@ -104,14 +102,16 @@ export const RefreshRetry = function (user, params, opts) {
 }
 
 export const ParseSearchResponse = function (body) {
-  let photos = []
+  let resp = { photos: [], nextPageToken: body.nextPageToken };
 
-  const items = body.mediaItems
-    .filter(x => x) // filter empty or invalid items
-    .filter(x => x.mimeType && x.mimeType.startsWith('image/')) // items with an image mime type
+  if (body.mediaItems && body.mediaItems.length) {
+    const items = body.mediaItems
+      .filter(x => x) // filter empty or invalid items
+      .filter(x => x.mimeType && x.mimeType.startsWith('image/')) // items with an image mime type
 
-  photos = photos.concat(items);
+    resp.photos = resp.photos.concat(items);
+  }
 
-  return { photos: photos, nextPageToken: body.nextPageToken }
+  return resp;
 }
 

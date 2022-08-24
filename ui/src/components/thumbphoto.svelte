@@ -9,7 +9,7 @@
 
   const Url = function (photo) {
     if (photo.id) {
-      return photo.baseUrl.replace('https:/', '/api/photo') + "=w"+width+"-h"+height;
+      return photo.baseUrl.replace('https:/', '/api/photo') + "=w"+width+"-h"+height+"-c";
     } else {
       return photo.baseUrl;
     }

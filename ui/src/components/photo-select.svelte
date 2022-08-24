@@ -3,16 +3,19 @@
   import { CONTENT_CATEGORY } from '$lib/constants.js';
   import ThumbPhoto from '../components/thumbphoto.svelte';
   import ThumbCanvas from '../components/thumbcanvas.svelte';
+  import PhotoFilter from '../components/photo-filter.svelte';
   import * as smartcrop from 'smartcrop';
   import { SearchWithFilter } from '$lib/api.js';
 
   let main;
-  let includedContentCategories = [];
-  let excludedContentCategories = [];
+  let filter;
   let pageSize = 100;
   let maxPages = 3;
 
-  const Filter = function (filter) {
+  const Filter = function(evt) {
+    filter = evt.detail;
+    filter.pageSize = pageSize;
+    filter.maxPages = maxPages;
     return SearchWithFilter(filter).then(resp => {
       if (resp && resp.photos) {
         $Photos = { photos: [...$Photos.photos, ...resp.photos]}
@@ -75,126 +78,125 @@
   const DeselectTilePhoto = (id) => {
     $TilePhotos = $TilePhotos.filter(photo => photo.id !== id)
   }
-
-  const SubmitFilter = function () {
-    Filter({ includedContentCategories: includedContentCategories, maxPages: maxPages, pageSize: pageSize })
-  }
-
-  const ChangeFilter = function (el) {
-    if (el.target.checked) {
-      includedContentCategories.push(el.target.id);
-      includedContentCategories = includedContentCategories.filter((val, idx, self) => self.indexOf(val) === idx); // add and unique
-    } else {
-      includedContentCategories = includedContentCategories.filter(cat => cat !== el.target.id); // remove
-    }
-  }
 </script>
 
-<section class="section">
-  <nav class="level">
-    <div class="level-left">
-      <div class="level-item">
-        <a on:click={SelectAllPhotos} class="button is-primary">Use All for Tiles</a>
-      </div>
-      <div class="level-item">
-        <a on:click={DeselectAllTiles} class="button is-primary">Remove All Tiles</a>
-      </div>
-      <div class="level-item">
-        <a on:click={ClearAllPhotos} class="button is-primary">Clear All Photos</a>
-      </div>
-      <div class="level-item">
-        <div class="select">
-          <select bind:value={$TargetScale}>
-            <option value=1 selected>Select scale size (mosaic / tiles)</option>
-            {#each [1,2,3,4,5,6,7,8,9,10] as x}
-            <option value={x}>
-              {x}x - {$TargetWidth * x}x{$TargetHeight * x} - {$TileWidth * x}x{$TileHeight * x}
-            </option>
-            {/each}
-          </select>
-        </div>
-      </div>
-      <div class="level-item">
-        <input class="input" type="number" bind:value={pageSize} />
-      </div>
-      <div class="level-item">
-        <input class="input" type="number" bind:value={maxPages} />
-      </div>
-      <div class="level-item">
-        AUTO CROP {$AutoCrop}
-        <div class="select">
-          <select bind:value={$AutoCrop}>
-            <option value=1>Auto crop tile images</option>
-            <option value=0>Do not modify tile images</option>
-          </select>
-      </div>
-    </div>
-    <div class="level-right">
-      <div class="level-item">
-        {$Photos.photos.length} photos
-      </div>
-      <div class="level-item">
-        {$TilePhotos.length} tiles selected
-      </div>
-    </div>
-  </nav>
+<section>
   <div class="columns">
-    <div class="column is-one-fifth">
-      <div class="form">
-        <button on:click={SubmitFilter} type="button" class="button is-primary">Filter</button>
-        {#each Object.entries(CONTENT_CATEGORY) as [key,val]}
-        <div class="field">
-          <label class="checkbox">
-            <input type="checkbox" id={key} on:change={ChangeFilter}>
-            {val}
-          </label>
-        </div>
-        {/each}
-      </div>
+    <div class="column is-2">
+      <PhotoFilter on:change={Filter} />
     </div>
-    <div class="column is-three-fifths">
-      <div class="columns is-gapless is-multiline is-mobile">
-        {#each $Photos.photos as photo}
-          <div class="column is-1">
-            <a id="a-{photo.id}" on:click|once={SelectPhoto(photo, this)} href="#">
-              <ThumbPhoto photo={photo} />
-            </a>
+    <div class="column is-4">
+      <div class="card">
+        <header class="card-header">
+          <p class="card-header-title">
+            Google Photos
+          </p>
+
+          <div class="select is-small is-rounded mt-2 mr-2">
+            <select bind:value={pageSize}>
+              {#each Array.from(Array(11).keys()).filter(i => i > 0) as num}
+                <option value={num*100}>{num*100} per page</option>
+              {/each}
+            </select>
           </div>
-        {/each}
+          <div class="select is-small is-rounded mt-2 mr-2">
+            <select bind:value={maxPages}>
+              {#each Array.from(Array(11).keys()).filter(i => i > 0) as num}
+                <option value={num}>{num} max pages</option>
+              {/each}
+            </select>
+          </div>
+
+          <div class="is-pulled-right mt-3 mr-2">
+            <span class="is-italic is-size-7">
+              {$Photos.photos.length} photos
+            </span>
+          </div>
+        </header>
+        <footer class="card-footer">
+          <a href="#" on:click|preventDefault={SelectAllPhotos} class="card-footer-item">Select All for Tiles</a>
+          <a href="#" on:click|preventDefault={ClearAllPhotos} class="card-footer-item">Clear All Photos</a>
+        </footer>
+        <div class="card-content">
+          <div class="content">
+            <div class="columns is-gapless is-multiline is-mobile">
+              {#each $Photos.photos as photo}
+                <div class="column is-1">
+                  <a id="a-{photo.id}" on:click|preventDefault={SelectPhoto(photo, this)} href="#">
+                    <ThumbPhoto photo={photo} />
+                  </a>
+                </div>
+              {/each}
+            </div>
+          </div>
+        </div>
       </div>
     </div>
-    <div class="column is-one-fifth">
-      <nav class="panel">
-        <p class="panel-heading">
-          Selected Main Photo
+
+    <div class="column is-4">
+     <div class="card">
+        <header class="card-header">
+          <p class="card-header-title">
+            Mosaic Tile Images
+          </p>
+          <div class="is-pulled-right mt-3 mr-2">
+            <span class="is-italic is-size-7">
+              {$TilePhotos.length} tiles
+            </span>
+          </div>
+        </header>
+        <footer class="card-footer">
+          <a href="#" on:click|preventDefault={DeselectAllTiles} class="card-footer-item">Clear All Tiles</a>
+          <a href="#" on:click|preventDefault={() => $AutoCrop = !$AutoCrop} class={$AutoCrop ? "card-footer-item" : "card-footer-item is-strikethrough"} title={$AutoCrop ? "Will autocrop tile images" : "Will not autocrop tile images"}>
+            Auto Crop Tiles
+          </a>
+        </footer>
+
+        <div class="card-content">
+          <div class="content">
+            <div class="columns is-gapless is-multiline is-mobile">
+              {#each $TilePhotos as photo}
+              <a on:click|preventDefault={DeselectTilePhoto(photo.id)} href="#">
+                <ThumbCanvas photo={photo} />
+              </a>
+              {/each}
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="column is-2">
+      <div class="card">
+        <header class="card-header">
+          <p class="card-header-title">
+            Main Photo
+          </p>
+        </header>
+        <footer class="card-footer">
           {#if $MainPhotoUrl}
-          <span class="is-small">click to remove</span>
+          <a href="#" on:click|preventDefault={DeselectMainPhoto} class="card-footer-item">Clear Main Photo</a>
           {/if}
-        </p>
-        {#if $MainPhotoUrl}
-        <a on:click={DeselectMainPhoto} href="#">
-          <img bind:this={main} src="{$MainPhotoUrl}" />
-        </a>
-        {:else}
-        <p>Click photo to select as main background image</p>
-        {/if}
-      </nav>
-      <nav class="panel">
-        <p class="panel-heading">
-          Selected Tile Photos <span class="is-small">({$TilePhotos.length})</span>
-        </p>
-        {#each $TilePhotos as photo}
-        <a on:click|once={DeselectTilePhoto(photo.id)} href="#">
-          <ThumbCanvas photo={photo} />
-        </a>
-        {/each}
-      </nav>
+        </footer>
+
+        <div class="card-content">
+          <div class="content">
+            {#if $MainPhotoUrl}
+              <img bind:this={main} src="{$MainPhotoUrl}" />
+            {:else}
+            <p>Click photo to select as main background image</p>
+            {/if}
+          </div>
+        </div>
+      </div>
     </div>
   </div>
 </section>
 
 <style>
   input.input {
-    width: 100px;
+    width: 60px;
+  }
+  a.is-strikethrough {
+    text-decoration: line-through;
   }
 </style>

@@ -109,13 +109,13 @@ app.get('/api/search', RequireAuth, (req, res) => {
   SearchPages(req.user, parameters).then(function (resp) {
     res.status(200).send({photos: resp.photos, parameters: parameters})
   }).catch(function (err) {
-    console.log("ERROR:500:/api/search", err);
+    console.log("ERROR:500:/api/search", err, filters);
     res.status(500).send(err);
   });
 });
 
 app.post('/api/filter', RequireAuth, (req, res) => {
-  const filters = {contentFilter: {}, mediaTypeFilter: {mediaTypes: ['PHOTO']}};
+  const filters = {mediaTypeFilter: {mediaTypes: ['PHOTO']}};
   const parameters = {filters};
   const opts = {};
 
@@ -127,18 +127,27 @@ app.post('/api/filter', RequireAuth, (req, res) => {
     opts.pageSize = req.body.pageSize;
   }
 
-  if (req.body.includedContentCategories) {
-    filters.contentFilter.includedContentCategories = [req.body.includedContentCategories];
+  if (req.body.dateFilter) {
+    filters.dateFilter = req.body.dateFilter;
   }
 
-  if (req.body.excludedContentCategories) {
-    filters.contentFilter.excludedContentCategories = [req.body.excludedContentCategories];
+  if (req.body.dateRange && req.body.dateRange.length == 2) {
+    filters.dateFilter = { ranges: [{startDate: { year: req.body.dateRange[0] }, endDate: { year: req.body.dateRange[1] }}]};
+  }
+
+  if (req.body.featureFilter) {
+    filters.featureFilter = req.body.featureFilter;
+  }
+
+  if (req.body.contentFilter) {
+    filters.contentFilter = req.body.contentFilter;
   }
 
   SearchPages(req.user, parameters, opts).then(function (resp) {
+    console.log('[FILTER] ' + JSON.stringify(filters), ' => ' + resp.photos.length + ' photos');
     res.status(200).send({photos: resp.photos, parameters: parameters})
   }).catch(function (err) {
-    console.log("ERROR:500:/api/filter", err);
+    console.log("ERROR:500:/api/filter", err, filters);
     res.status(500).send(err);
   });
 });

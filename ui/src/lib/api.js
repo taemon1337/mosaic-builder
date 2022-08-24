@@ -20,7 +20,6 @@ export const Search = function () {
 }
 
 export const SearchWithFilter = function (filter) {
-  filter = Object.assign({}, filter,{ mediaTypes: ['PHOTO'] });
   return fetch('/api/filter', {
     credentials: 'include',
     method: 'POST',

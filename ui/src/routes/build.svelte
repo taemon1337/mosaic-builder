@@ -16,12 +16,6 @@
           <span>Select Photos</span>
         </a>
       </li>
-      <li class={activeTab == "preview" ? "is-active" : ""}>
-        <a on:click={() => activeTab = "preview"}>
-          <span class="icon"><i class="fas fa-film" aria-hidden="true"></i></span>
-          <span>Preview Main</span>
-        </a>
-      </li>
       <li class={activeTab == "grid" ? "is-active" : ""}>
         <a on:click={() => activeTab = "grid"}>
           <span class="icon"><i class="fas fa-film" aria-hidden="true"></i></span>
@@ -38,9 +32,6 @@
   </div>
   <div class={activeTab == "select" ? "" : "is-hidden"}>
     <PhotoSelect />
-  </div>
-  <div class={activeTab == "preview" ? "" : "is-hidden"}>
-    <MainPhotoPreview />
   </div>
   <div class={activeTab == "grid" ? "" : "is-hidden"}>
     <GridTiles />
