@@ -145,11 +145,6 @@
             </span>
           </div>
         </header>
-        <footer class="card-footer">
-          <a href="#" on:click|preventDefault={SelectAllPhotos} class="card-footer-item">Select All for Tiles</a>
-          <a href="#" on:click|preventDefault={ClearAllPhotos} class="card-footer-item">Clear All Photos</a>
-          <a href="#" on:click|preventDefault={RemoveSimilar} class="card-footer-item">Clear Similar</a>
-        </footer>
         <div class="card-content">
           <div class="content">
             <div class="columns is-gapless is-multiline is-mobile">
@@ -163,6 +158,11 @@
             </div>
           </div>
         </div>
+        <footer class="card-footer">
+          <a href="#" on:click|preventDefault={SelectAllPhotos} class="card-footer-item">Select All for Tiles</a>
+          <a href="#" on:click|preventDefault={ClearAllPhotos} class="card-footer-item">Clear All Photos</a>
+          <a href="#" on:click|preventDefault={RemoveSimilar} class="card-footer-item">Clear Similar</a>
+        </footer>
       </div>
     </div>
 
@@ -193,12 +193,6 @@
             </span>
           </div>
         </header>
-        <footer class="card-footer">
-          <a href="#" on:click|preventDefault={DeselectAllTiles} class="card-footer-item">Clear All Tiles</a>
-          <a href="#" on:click|preventDefault={() => $AutoCrop = !$AutoCrop} class={$AutoCrop ? "card-footer-item" : "card-footer-item is-strikethrough"} title={$AutoCrop ? "Will autocrop tile images" : "Will not autocrop tile images"}>
-            Auto Crop Tiles
-          </a>
-        </footer>
 
         <div class="card-content">
           <div class="content">
@@ -211,11 +205,18 @@
             </div>
           </div>
         </div>
+
+        <footer class="card-footer">
+          <a href="#" on:click|preventDefault={DeselectAllTiles} class="card-footer-item">Clear All Tiles</a>
+          <a href="#" on:click|preventDefault={() => $AutoCrop = !$AutoCrop} class={$AutoCrop ? "card-footer-item" : "card-footer-item is-strikethrough"} title={$AutoCrop ? "Will autocrop tile images" : "Will not autocrop tile images"}>
+            Auto Crop Tiles
+          </a>
+        </footer>
       </div>
     </div>
     <div class="column is-2">
       <div class="field">
-        <button on:click|preventDefault={emitNext} class="button is-primary is-large" data-disabled={!$MainPhotoUrl || $TilePhotos.length < $MinimumTiles}>Preview Mosaic </button>
+        <button on:click|preventDefault={emitNext} class="button is-primary is-large" disabled={!$MainPhotoUrl || $TilePhotos.length < $MinimumTiles}>Generate Background</button>
       </div>
 
       <div class="card">
@@ -247,7 +248,10 @@
 <style>
   .card {
     height: 600px;
-    overflow: scroll;
+  }
+  .card-content {
+    height: 500px;
+    overflow:scroll;
   }
   input.input {
     width: 60px;

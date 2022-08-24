@@ -24,10 +24,6 @@
       <a href="/build" class="navbar-item">
         Create
       </a>
-
-      <a href="/docs" class="navbar-item">
-        Documentation
-      </a>
     </div>
 
     <div class="navbar-end">

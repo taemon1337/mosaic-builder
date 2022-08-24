@@ -2,6 +2,8 @@ import { writable, derived } from 'svelte/store';
 import { Image } from 'image-js';
 import { hash } from '$lib/hashmap.js';
 
+const PROXY = true;
+
 export const Photos = writable({photos: []});
 export const MainPhoto = writable(null);
 export const MainImage = writable(null);
@@ -10,9 +12,11 @@ export const TilePhotos = writable([]);
 export const TileWidth = writable(30);
 export const TileHeight = writable(30);
 export const TileIndex = writable([]); // store the order of tiles
+export const TileProgress = writable(0);
 export const TargetWidth = writable(1920);
 export const TargetHeight = writable(1080);
 export const TargetScale = writable(1);
+export const TargetProgress = writable(0);
 export const TargetModes = writable(['foobar', 'normal', 'src-in', 'screen', 'multiply', 'difference', 'exclusion', 'add', 'lighten', 'darken', 'overlay', 'hardlight', 'colordodge', 'colorburn', 'softlight', 'luminosity', 'color', 'hue', 'saturation', 'lightercolor', 'darkercolor']);
 export const AllowDuplicateTiles = writable(0);
 export const AutoCrop = writable(true);
@@ -34,15 +38,30 @@ export const FirstTile = derived(
 )
 
 export const FullPhotoUrl = function (photo) {
-  return "/api/photo/" + photo.baseUrl.replace('https://', '') + "=w1080-h1920";
+  let dim = "=w1080-h1920";
+  if (PROXY) {
+    return "/api/photo/" + photo.baseUrl.replace('https://', '') + dim;
+  } else {
+    return photo.baseUrl + dim;
+  }
 }
 
 export const OriginalPhotoUrl = function (photo) {
-  return "/api/photo/" + photo.baseUrl.replace('https://', '') + "=dv";
+  let dim = "=dv";
+  if (PROXY) {
+    return photo.baseUrl + dim;
+  } else {
+    return "/api/photo/" + photo.baseUrl.replace('https://', '') + dim;
+  }
 }
 
 export const TilePhotoUrl = function (photo) {
-  return "/api/photo/" + photo.baseUrl.replace('https://', '') + "w128-h128";
+  let dim = "w128-h128"
+  if (PROXY) {
+    return photo.baseUrl + dim;
+  } else {
+    return "/api/photo/" + photo.baseUrl.replace('https://', '') + dim;
+  }
 }
 
 export const GetAverageColorOfTile = function (tile) {
