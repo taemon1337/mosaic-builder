@@ -21,9 +21,9 @@ senvoy:
 env:
   # the application url to redirect to upon successfully authentication
   REDIRECT_URL:
+  CALLBACK_URL:
   GOOGLE_CLIENT_ID:
   GOOGLE_CLIENT_SECRET:
-  REDIS_URL: "redis://redis:6379"
 
 additionalEnv: []
 
