@@ -22,6 +22,7 @@ else
     --set env.REDIRECT_URL=${REDIRECT_URL} \
     --set env.CALLBACK_URL=${CALLBACK_URL} \
     --set env.SESSION_SECRET=${SESSION_SECRET} \
+    --set ingress.enabled=true \
     --set global.redis.password=${REDIS_PASSWORD} \
     ${RELEASE} photo-mosaic
 fi
