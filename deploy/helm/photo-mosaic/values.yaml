@@ -12,6 +12,7 @@ image:
 # sidecar envoy
 senvoy:
   enabled: true
+  port: 8443
   repository: taemon1337/senvoy
   pullPolicy: IfNotPresent
   tag: latest
@@ -83,7 +84,7 @@ autoscaling:
   enabled: true
   minReplicas: 1
   maxReplicas: 10
-  targetCPUUtilizationPercentage: 80
+  targetCPUUtilizationPercentage: 90
   targetMemoryUtilizationPercentage: 80
 
 nodeSelector: {}

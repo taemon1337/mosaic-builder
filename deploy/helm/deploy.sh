@@ -1,6 +1,6 @@
 #!/bin/bash
 ACTION=${1:-"upgrade -i"}
-NAME=${2:-"photo-mosaic"}
+RELEASE=${2:-"photo-mosaic"}
 RELEASE_ENV=${3:-"gke"}
 
 if [[ "${ACTION}" =~ "template" ]]; then

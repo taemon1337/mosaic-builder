@@ -67,22 +67,20 @@ spec:
           imagePullPolicy: {{ .Values.senvoy.pullPolicy }}
           env:
             - name: UPSTREAM_PORT
-              value: 3000
+              value: "3000"
             {{- if .Values.senvoy.additionalEnv }}
             {{- toYaml .Values.senvoy.additionalEnv | nindent 12 }}
             {{- end }}
           ports:
             - name: https
-              containerPort: 8443
+              containerPort: {{ .Values.senvoy.port }}
               protocol: TCP
           livenessProbe:
-            httpGet:
-              path: /
-              port: https
+            tcpSocket:
+              port: {{ .Values.senvoy.port }}
           readinessProbe:
-            httpGet:
-              path: /
-              port: https
+            tcpSocket:
+              port: {{ .Values.senvoy.port }}
           resources:
             {{- toYaml .Values.resources | nindent 12 }}
 
