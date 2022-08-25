@@ -6,9 +6,16 @@ replicaCount: 1
 
 image:
   repository: taemon1337/mosaic-builder-prod
-  pullPolicy: IfNotPresent
-  # Overrides the image tag whose default is the chart appVersion.
+  pullPolicy: Always
   tag: latest
+
+# sidecar envoy
+senvoy:
+  enabled: true
+  repository: taemon1337/senvoy
+  pullPolicy: IfNotPresent
+  tag: latest
+  additionalEnv: []
 
 env:
   # the application url to redirect to upon successfully authentication

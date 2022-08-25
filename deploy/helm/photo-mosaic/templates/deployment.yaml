@@ -47,7 +47,7 @@ spec:
             {{- end }}
           ports:
             - name: http
-              containerPort: 80
+              containerPort: 3000
               protocol: TCP
           livenessProbe:
             httpGet:
@@ -59,6 +59,34 @@ spec:
               port: http
           resources:
             {{- toYaml .Values.resources | nindent 12 }}
+        {{- if .Values.senvoy.enabled }}
+        - name: {{ .Chart.Name }}-proxy
+          securityContext:
+            {{- toYaml .Values.securityContext | nindent 12 }}
+          image: "{{ .Values.senvoy.repository }}:{{ .Values.senvoy.tag | default .Chart.AppVersion }}"
+          imagePullPolicy: {{ .Values.senvoy.pullPolicy }}
+          env:
+            - name: UPSTREAM_PORT
+              value: 3000
+            {{- if .Values.senvoy.additionalEnv }}
+            {{- toYaml .Values.senvoy.additionalEnv | nindent 12 }}
+            {{- end }}
+          ports:
+            - name: https
+              containerPort: 8443
+              protocol: TCP
+          livenessProbe:
+            httpGet:
+              path: /
+              port: https
+          readinessProbe:
+            httpGet:
+              path: /
+              port: https
+          resources:
+            {{- toYaml .Values.resources | nindent 12 }}
+
+        {{- end }}
       {{- with .Values.nodeSelector }}
       nodeSelector:
         {{- toYaml . | nindent 8 }}
