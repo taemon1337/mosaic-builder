@@ -9,8 +9,9 @@ if [[ "${ACTION}" =~ "template" ]]; then
     --set env.GOOGLE_CLIENT_ID=TEST_CLIENT_ID \
     --set env.GOOGLE_CLIENT_SECRET=TEST_CLIENT_SECRET \
     --set env.REDIRECT_URL=https://TEST_REDIRECT_URL \
-    --set env.CALLBACK_URL=https://TEST_CALLBACK_URL/auth/google/callback
+    --set env.CALLBACK_URL=https://TEST_CALLBACK_URL/auth/google/callback \
     --set env.SESSION_SECRET=TEST_SESSION_SECRET \
+    --set ingress.enabled=true \
     --set global.redis.password=TEST_REDIS_PASSWORD \
     ${RELEASE} photo-mosaic
 else
