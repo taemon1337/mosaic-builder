@@ -2,6 +2,8 @@ import * as dotenv from 'dotenv'
 dotenv.config()
 import express from 'express';
 import session from 'express-session';
+import { createClient } from 'redis';
+import connectRedis from 'connect-redis';
 import bodyParser from 'body-parser';
 import passport from 'passport';
 import cors from 'cors';
@@ -12,6 +14,38 @@ import { handler } from './build/handler.js';
 const app = express();
 const GoogleStrategy = oauth.OAuth2Strategy;
 const GoogleScopes = ['profile', 'email', 'https://www.googleapis.com/auth/photoslibrary.readonly'];
+
+
+// Setup Redis for session storage
+const redisOpts = {
+  legacyMode: true,
+  url: process.env.REDIS_URL || 'redis://redis:6379',
+}
+
+const RedisStore = connectRedis(session);
+const redisClient = createClient(redisOpts);
+
+redisClient.on('error', function (err) {
+  console.log("Could not connect to redis at: ", redisOpts, err);
+})
+
+redisClient.on('connect', function () {
+  console.log('Connected to redis.');
+});
+
+const sessionOpts = {
+  name: 'userauth',
+  resave: false,
+  saveUninitialized: true,
+  cookie: { secure: 'auto' },
+  secret: process.env.SESSION_SECRET,
+  maxAge: 24*60*60*1000,
+}
+
+if (process.env.NODE_ENV == 'production') {
+  sessionOpts.store = new RedisStore({ client: redisClient });
+  redisClient.connect().catch(console.error);
+}
 
 function RequireAuth(req, res, next) {
   if (!req.user || !req.isAuthenticated()) {
@@ -28,11 +62,8 @@ function RequireAuth(req, res, next) {
   next()
 }
 
-app.use(session({
-  resave: true,
-  saveUninitialized: true,
-  secret: process.env.SESSION_SECRET 
-}));
+// setup session middleware
+app.use(session(sessionOpts));
 
 // Parse application/json request data.
 app.use(bodyParser.json());
@@ -76,19 +107,20 @@ passport.use(new GoogleStrategy({
     callbackURL: "http://localhost:3000/auth/google/callback"
   },
   function(token, refreshToken, profile, done) {
-    let email = profile.emails?.pop(0)?.value;
-    console.log("[LOGIN] id=" + profile.id + ", displayName='" + profile.displayName + "', email=" + email);
-    return done(null, {profile, email, token, refreshToken});
+    let user = profile._json
+    user.token = token;
+    user.refreshToken = refreshToken;
+    console.log("[LOGIN]", user);
+    return done(null, user);
   }
 ));
 
 app.get('/auth/me', RequireAuth, (req, res) => {
-  res.json(req.user.profile)
+  res.json(req.user)
 });
 
 app.get('/auth/delete', (req, res) => {
-  let profile = req.user.profile;
-  console.log("[LOGOUT] id=" + profile.id + ", displayName='" + profile.displayName + "', email=" + req.user.email);
+  console.log("[LOGOUT]", req.user);
   req.session.destroy()
   res.redirect('/');
 })

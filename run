@@ -1,5 +1,4 @@
 #!/bin/bash
-
 WD=$(dirname "$(readlink -f -- "$0")")
 PROJECT_NAME=$(basename "${WD}")
 DEV_IMAGE=${PROJECT_NAME}-dev
@@ -7,7 +6,11 @@ SERVER_IMAGE=${PROJECT_NAME}-server
 DOCKER_USER=${DOCKER_USER:-""}
 PROD_IMAGE=${DOCKER_USER}/${PROJECT_NAME}-prod
 PROD_TAG=latest
+GOOGLE_CLIENT_ID=${GOOGLE_CLIENT_ID}
+GOOGLE_CLIENT_SECRET=${GOOGLE_CLIENT_SECRET}
+SESSION_SECRET=${SESSION_SECRET}
 PROD_ENV="-e REDIRECT_URL=http://localhost:3000 -e GOOGLE_CLIENT_ID=${GOOGLE_CLIENT_ID} -e GOOGLE_CLIENT_SECRET=${GOOGLE_CLIENT_SECRET} -e SESSION_SECRET=${SESSION_SECRET}"
+REDIS_IMAGE=redis:latest
 UIDIR=${WD}/ui
 SERVERDIR=${WD}/server
 SERVER_PORTS="-p 3000:3000"
@@ -91,12 +94,22 @@ _release() {
     start)
       shift
       echo "Starting ${PROD_IMAGE}:${PROD_TAG} docker image..."
+      echo ${PROD_ENV}
       docker run --rm -it ${PROD_ENV} --net ${DOCKER_NET} ${SERVER_PORTS} ${PROD_IMAGE}:${PROD_TAG}
       ;;
     exec)
       shift
       echo "Starting shell ${PROD_IMAGE}:${PROD_TAG} docker image..."
       docker run --rm -it ${PROD_ENV} --net ${DOCKER_NET} ${SERVER_PORTS} ${PROD_IMAGE}:${PROD_TAG} bash
+      ;;
+  esac
+}
+
+_redis() {
+  case "$1" in
+    start)
+      echo "Starting redis server..."
+      docker run --rm -it --name redis --net ${DOCKER_NET} ${REDIS_IMAGE}
       ;;
   esac
 }
@@ -114,6 +127,10 @@ _main() {
     rel*)
       shift
       _release "${@}"
+      ;;
+    redis)
+      shift
+      _redis "${@}"
       ;;
     *)
       _help;;

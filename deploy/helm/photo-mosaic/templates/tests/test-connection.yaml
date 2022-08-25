@@ -1,0 +1,15 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: "{{ include "photo-mosaic.fullname" . }}-test-connection"
+  labels:
+    {{- include "photo-mosaic.labels" . | nindent 4 }}
+  annotations:
+    "helm.sh/hook": test
+spec:
+  containers:
+    - name: wget
+      image: busybox
+      command: ['wget']
+      args: ['{{ include "photo-mosaic.fullname" . }}:{{ .Values.service.port }}']
+  restartPolicy: Never

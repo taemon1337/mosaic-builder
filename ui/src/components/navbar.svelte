@@ -1,5 +1,5 @@
 <script>
-  import { SignedIn, Picture } from '../store/user.js';
+  import { User, SignedIn, Picture } from '../store/user.js';
 
   let showMenu = false;
 </script>
@@ -40,12 +40,9 @@
             </a>
 
             <div class="navbar-dropdown">
-              <a class="navbar-item">
-                About
-              </a>
-              <a class="navbar-item">
-                Contact
-              </a>
+              <p class="navbar-item">
+                Email: {$User.email}
+              </p>
               <hr class="navbar-divider">
               <a href="/auth/delete" class="navbar-item">
                 Sign out

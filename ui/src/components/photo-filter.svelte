@@ -1,6 +1,7 @@
 <script>
   import { createEventDispatcher } from 'svelte';
   import { writable } from 'svelte/store';
+  import { SignedIn } from '../store/user.js';
   import { CONTENT_CATEGORY } from '$lib/constants.js';
 
   let filter;
@@ -70,7 +71,7 @@
 </script>
 <div class="form">
   <div class="field">
-    <button class="button is-primary is-large" on:click|preventDefault={updateFilter}>Search Photos</button>
+    <button class="button is-primary is-large" on:click|preventDefault={updateFilter} disabled={!SignedIn}>Search Photos</button>
   </div>
 
   <div class="field">
