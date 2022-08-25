@@ -78,11 +78,13 @@ spec:
               containerPort: {{ .Values.senvoy.port }}
               protocol: TCP
           livenessProbe:
-            tcpSocket:
-              port: {{ .Values.senvoy.port }}
+            httpGet:
+              path: /
+              port: https
           readinessProbe:
-            tcpSocket:
-              port: {{ .Values.senvoy.port }}
+            httpGet:
+              path: /
+              port: https
           resources:
             {{- toYaml .Values.resources | nindent 12 }}
 

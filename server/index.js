@@ -115,6 +115,10 @@ passport.use(new GoogleStrategy({
   }
 ));
 
+app.get('/healthz', (req, res) => {
+  res.send('OK');
+});
+
 app.get('/auth/me', RequireAuth, (req, res) => {
   res.json(req.user)
 });
