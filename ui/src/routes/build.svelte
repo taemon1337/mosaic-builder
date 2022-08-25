@@ -6,7 +6,7 @@
   let activeTab = "select";
 </script>
 
-<section class="section">
+<section class="mr-5 ml-5">
   <div class="tabs is-toggle is-fullwidth">
     <ul class="is-hidden">
       <li class={activeTab == "select" ? "is-active" : ""}>

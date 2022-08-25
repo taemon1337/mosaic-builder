@@ -95,7 +95,6 @@
   // builds the grid trying to match tiles to pixel colors
   const colorMatchGrid = async function () {
     try {
-      progressBar.className = "progress is-primary";
       grid.width = $TargetWidth;
       grid.height = $TargetHeight;
       let ctx = grid.getContext('2d');
@@ -107,6 +106,7 @@
       let tileIndex = [];
       let total = w*h;
       let progress = 1;
+      progressBar.className = "progress is-primary";
       progressBar.value = Math.floor(progress / total * 100);
 
       let mainimage = await Image.load($MainPhotoUrl)
@@ -221,6 +221,13 @@
               {/each}
             </select>
           </div>
+        </div>
+
+        <div class="field">
+          <label class="label">Mosaic Info</label>
+          <p class="help">{$TilePhotos.length} unique tiles</p>
+          <p class="help">{Math.floor(($TargetWidth*$TargetHeight) / ($TileWidth*$TileHeight))} total tiles</p>
+          <p class="help">{$TargetWidth}x{$TargetHeight} pixels</p>
         </div>
       </div>
     </div>

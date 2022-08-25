@@ -1,12 +1,33 @@
+<script>
+  import { onMount } from 'svelte';
+
+  let current = 1;
+  let photos = ["/birthday-original.jpg", "birthday-grid.jpg", "birthday-mosaic-light.jpg", "birthday-mosaic.jpg" ];
+
+  let next = function() {
+    current < photos.length-1 ? current+=1 : current = 0;
+  }
+
+  onMount(() => {
+    setInterval(() => {
+      next();
+    }, 9000);
+  });
+</script>
+
 <div class="hero-body">
     <div class="container has-text-centered">
-        <div class="columns is-vcentered">
-            <div class="column is-5">
+        <div class="columns is-multiline is-vcentered">
+            <div class="column is-6">
                 <figure class="image">
-                    <img src="/birthday.jpg" alt="Birthday Collage">
+                    <img src={photos[current]} alt="Birthday Collage" style="width:540px;height:720px;">
                 </figure>
             </div>
-            <div class="column is-6 is-offset-1">
+            <div class="column is-5 is-offset-1">
+                <figure class="image is-128x128 mr-auto ml-auto">
+                    <img src="/google-photos-icon-mosaic.png" alt="Google Photos Icon Mosaic">
+                </figure>
+
                 <h1 class="title is-2">
                   Photos Mosaic Builder
                 </h1>
@@ -19,16 +40,6 @@
                       Get Started
                     </a>
                 </p>
-                <ol>
-                  <li>Login with your Google account</li>
-                  <li>Give permission to access your Google Photos</li>
-                  <li>Filter/Find your desired photos by category</li>
-                  <li>Select your main image</li>
-                  <li>Select your tile images</li>
-                  <li>Generate your background tile image</li>
-                  <li>Generate your mosaic</li>
-                  <li>Save your mosaic (right click Save Image As)</li>
-                </ol>
             </div>
         </div>
     </div>

@@ -3,16 +3,24 @@
   import { MainImage, TilePhotos, MinimumTiles, TileIndex, TargetWidth, TargetHeight, TargetScale, TargetModes, TileWidth, TileHeight, AutoCrop } from "../store/photo.js";
   import { Image } from 'image-js';
   import * as smartcrop from 'smartcrop';
+  import { blendOnto } from '$lib/blender.js';
 
   let mosaic;
   let mode = 'screen';
   let scale = 1;
+  let progressBar;
 
   const dispatch = createEventDispatcher();
   const emitPrev = function () { dispatch('prev'); }
 
   const FindTile = function (id) {
     return $TilePhotos.filter(p => p.id == id).pop();
+  }
+
+  const ClearProgress = async function () {
+    await new Promise(res => setTimeout(res, 5000))
+    progressBar.value = 0;
+    progressBar.className = "is-hidden";
   }
 
   const getBase64Image = function (photo, size) {
@@ -32,8 +40,8 @@
     resetMosaic();
     let grid = document.getElementById('grid-canvas');
     let tileIndex = [...$TileIndex];
-    let progress = 0;
-    let totalTiles = 0;
+    let progress = 1;
+    let total = 0;
 
     let ctx = mosaic.getContext('2d');
     let gridctx = grid.getContext('2d');
@@ -43,7 +51,10 @@
 
     let resizeOpts = { width: $TargetWidth * $TargetScale, height: $TargetHeight * $TargetScale };
     let tileOpts = { width: $TileWidth * $TargetScale, height: $TileHeight * $TargetScale };
-    totalTiles = Math.floor(($TargetWidth * $TargetHeight) / ($TileWidth * $TileHeight));
+
+    total = Math.floor(($TargetWidth * $TargetHeight) / ($TileWidth * $TileHeight));
+    progressBar.className = "progress is-primary";
+    progressBar.value = Math.floor(progress / total * 100);
 
     mosaic.width = resizeOpts.width;
     mosaic.height = resizeOpts.height;
@@ -66,6 +77,8 @@
         }
 
         progress++;
+        progressBar.value = Math.floor(progress / total * 100);
+        await new Promise(res => setTimeout(res, 1))
       }
     }
 
@@ -77,7 +90,7 @@
     let mainctx = main.getContext('2d');
 
     mainctx.drawImage(mainimg.getCanvas(), 0, 0);
-    mainctx.blendOnto(ctx, mode);
+    blendOnto(mainctx, ctx, mode);
     console.log('mosaic done');
   }
 
@@ -85,7 +98,7 @@
     let grid = document.getElementById('grid-canvas');
     let gridctx = grid.getContext('2d');
     let ctx = mosaic.getContext('2d');
-    gridctx.blendOnto(ctx, mode);
+    blendOnto(gridctx, ctx, mode);
   }
 
   const blendMain = function () {
@@ -100,7 +113,7 @@
     let mainctx = main.getContext('2d');
 
     mainctx.drawImage(mainimg.getCanvas(), 0, 0);
-    mainctx.blendOnto(ctx, mode);
+    blendOnto(mainctx, ctx, mode);
   }
 
   const resetMosaic = function () {
@@ -118,9 +131,13 @@
         </div>
 
         <div class="field">
+          <progress bind:this={progressBar} class="is-hidden progress is-primary" value=1 max="100">1%</progress>
+        </div>
+
+        <div class="field">
           <label class="label">Overlay Mode</label>
           <div class="select">
-            <select value={mode}>
+            <select bind:value={mode}>
               {#each $TargetModes as m}
               <option value={m}>{m}</option>
               {/each}

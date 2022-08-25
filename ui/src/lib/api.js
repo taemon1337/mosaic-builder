@@ -28,7 +28,17 @@ export const SearchWithFilter = function (filter) {
       'Content-Type': 'application/json; charset=UTF-8',
     }
   }).then(resp => {
-    return resp.ok ? resp.json() : null;
+    if (resp.ok) {
+      return resp.json().then((data) => {
+        if (filter.siteImages) {
+          data.photos = data.photos.concat([{id: 'photo01', baseUrl: "/google-photos-icon.png"}]);
+        }
+      
+        return data;
+      });
+    } else {
+      return null;
+    }
   })
 }
 

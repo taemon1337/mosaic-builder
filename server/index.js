@@ -57,7 +57,6 @@ app.use(cors(corsOptions));
 
 app.use(passport.initialize());
 app.use(passport.session());
-app.get('/error', (req, res) => res.send("error logging in"));
 
 passport.serializeUser(function(user, cb) {
   cb(null, user);
@@ -77,7 +76,9 @@ passport.use(new GoogleStrategy({
     callbackURL: "http://localhost:3000/auth/google/callback"
   },
   function(token, refreshToken, profile, done) {
-      return done(null, {profile, token, refreshToken});
+    let email = profile.emails?.pop(0)?.value;
+    console.log("[LOGIN] id=" + profile.id + ", displayName='" + profile.displayName + "', email=" + email);
+    return done(null, {profile, email, token, refreshToken});
   }
 ));
 
@@ -86,6 +87,8 @@ app.get('/auth/me', RequireAuth, (req, res) => {
 });
 
 app.get('/auth/delete', (req, res) => {
+  let profile = req.user.profile;
+  console.log("[LOGOUT] id=" + profile.id + ", displayName='" + profile.displayName + "', email=" + req.user.email);
   req.session.destroy()
   res.redirect('/');
 })

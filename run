@@ -1,6 +1,5 @@
 #!/bin/bash
 
-. ~/.bash_profile
 WD=$(dirname "$(readlink -f -- "$0")")
 PROJECT_NAME=$(basename "${WD}")
 DEV_IMAGE=${PROJECT_NAME}-dev

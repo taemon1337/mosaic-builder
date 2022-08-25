@@ -13,6 +13,7 @@
   let endDate;
   let includedContentCategories = [];
   let includedFeatures = [];
+  let includeSiteImages = false;
 
   const dispatch = createEventDispatcher();
 
@@ -36,6 +37,10 @@
 
     if (includeDate) {
       filter.dateRange = [startDate,endDate||startDate];
+    }
+
+    if (includeSiteImages) {
+      filter.siteImages = true;
     }
 
     if (includedFeatures.length) {
@@ -113,4 +118,11 @@
     </label>
   </div>
   {/each}
+
+  <div class="field">
+    <label class="checkbox">
+      <input type="checkbox" bind:checked={includeSiteImages}>
+      Site Images
+    </label>
+  </div>
 </div>

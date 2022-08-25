@@ -17,7 +17,7 @@ export const TargetWidth = writable(1920);
 export const TargetHeight = writable(1080);
 export const TargetScale = writable(1);
 export const TargetProgress = writable(0);
-export const TargetModes = writable(['foobar', 'normal', 'src-in', 'screen', 'multiply', 'difference', 'exclusion', 'add', 'lighten', 'darken', 'overlay', 'hardlight', 'colordodge', 'colorburn', 'softlight', 'luminosity', 'color', 'hue', 'saturation', 'lightercolor', 'darkercolor']);
+export const TargetModes = writable(['white', 'normal', 'src-in', 'screen', 'multiply', 'difference', 'exclusion', 'add', 'lighten', 'darken', 'overlay', 'hardlight', 'colordodge', 'colorburn', 'softlight', 'luminosity', 'color', 'hue', 'saturation', 'lightercolor', 'darkercolor']);
 export const AllowDuplicateTiles = writable(0);
 export const UniqueTiles = writable(false);
 export const AutoCrop = writable(true);
@@ -41,7 +41,11 @@ export const FirstTile = derived(
 export const FullPhotoUrl = function (photo) {
   let dim = "=w1080-h1920";
   if (PROXY) {
-    return "/api/photo/" + photo.baseUrl.replace('https://', '') + dim;
+    if (photo.productUrl && photo.productUrl.startsWith('https://photos.google.com')) {
+      return "/api/photo/" + photo.baseUrl.replace('https://', '') + dim;
+    } else {
+      return photo.baseUrl;
+    }
   } else {
     return photo.baseUrl + dim;
   }
@@ -57,11 +61,15 @@ export const OriginalPhotoUrl = function (photo) {
 }
 
 export const TilePhotoUrl = function (photo) {
-  let dim = "w128-h128"
+  let dim = "=w150-h150"
   if (PROXY) {
-    return photo.baseUrl + dim;
+    if (photo.productUrl && photo.productUrl.startsWith('https://photos.google.com')) {
+      return "/api/photo/" + photo.baseUrl.replace('https://', '') + dim;
+    } else {
+      return photo.baseUrl;
+    }
   } else {
-    return "/api/photo/" + photo.baseUrl.replace('https://', '') + dim;
+    return photo.baseUrl + dim;
   }
 }
 

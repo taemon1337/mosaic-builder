@@ -40,7 +40,7 @@
     dispatch('next');
   }
 
-  const DetectSimilarPhotos = function () {
+  const RemoveSimilar = function () {
     let ids = $Photos.photos.map(p => p.id);
     let sims = $Photos.photos.map(p => p.hashmap);
     let matched = {};
@@ -139,11 +139,6 @@
     $TilePhotos = $TilePhotos.filter(photo => photo.id !== id)
   }
 
-  const RemoveSimilar = function () {
-    $Photos.photos.forEach(function (photo, i) {
-      
-    });
-  }
 </script>
 
 <section>
@@ -199,7 +194,6 @@
         <footer class="card-footer">
           <a href="#" on:click|preventDefault={SelectAllPhotos} class="card-footer-item">Select All for Tiles</a>
           <a href="#" on:click|preventDefault={ClearAllPhotos} class="card-footer-item">Clear All Photos</a>
-          <a href="#" on:click|preventDefault={RemoveSimilar} class="card-footer-item">Clear Similar</a>
         </footer>
       </div>
     </div>
@@ -256,7 +250,7 @@
 
         <footer class="card-footer">
           <a href="#" on:click|preventDefault={DeselectAllTiles} class="card-footer-item">Clear All</a>
-          <a href="#" on:click|preventDefault={DetectSimilarPhotos} class="card-footer-item">Remove Similar</a>
+          <a href="#" on:click|preventDefault={RemoveSimilar} class="card-footer-item">Remove Similar</a>
           <a href="#" on:click|preventDefault={() => $AutoCrop = !$AutoCrop} class={$AutoCrop ? "card-footer-item" : "card-footer-item is-strikethrough"} title={$AutoCrop ? "Will autocrop tile images" : "Will not autocrop tile images"}>
             Auto Crop Tiles
           </a>
@@ -274,21 +268,25 @@
             Main Photo
           </p>
         </header>
-        <footer class="card-footer">
-          {#if $MainPhotoUrl}
-          <a href="#" on:click|preventDefault={DeselectMainPhoto} class="card-footer-item">Clear Main Photo</a>
-          {/if}
-        </footer>
 
         <div class="card-content">
           <div class="content">
             {#if $MainPhotoUrl}
               <img bind:this={main} src="{$MainPhotoUrl}" />
             {:else}
-            <p>Click photo to select as main background image</p>
+              <article class="message is-primary">
+                <div class="message-body">
+                  Click a photo to select it as your main photo
+                </div>
+              </article>
             {/if}
           </div>
         </div>
+        <footer class="card-footer">
+          {#if $MainPhotoUrl}
+          <a href="#" on:click|preventDefault={DeselectMainPhoto} class="card-footer-item">Clear Main Photo</a>
+          {/if}
+        </footer>
       </div>
     </div>
   </div>

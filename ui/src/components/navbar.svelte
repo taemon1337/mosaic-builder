@@ -1,21 +1,23 @@
 <script>
   import { SignedIn, Picture } from '../store/user.js';
+
+  let showMenu = false;
 </script>
 
 <nav class="navbar" role="navigation" aria-label="main navigation">
   <div class="navbar-brand">
     <a class="navbar-item" href="/">
-      <img src="/google-photos-icon.svg">
+      <img src="/google-photos-icon-mosaic.png">
     </a>
 
-    <a role="button" class="navbar-burger" aria-label="menu" aria-expanded="false" data-target="navbarBasicExample">
+    <a role="button" on:click={() => showMenu = !showMenu} class={showMenu ? "navbar-burger is-active" : "navbar-burger"} aria-label="menu" aria-expanded="false" data-target="navbar">
       <span aria-hidden="true"></span>
       <span aria-hidden="true"></span>
       <span aria-hidden="true"></span>
     </a>
   </div>
 
-  <div id="navbarBasicExample" class="navbar-menu">
+  <div id="navbar" class={showMenu ? "navbar-menu is-active" : "navbar-menu"}>
     <div class="navbar-start">
       <a href="/" class="navbar-item">
         Photo Mosaic
@@ -51,9 +53,13 @@
             </div>
           </div>
           {:else}
-          <a href="/auth/google" class="button is-primary">
-            <strong>Sign in</strong>
-          </a>
+          <div class="navbar-item">
+            <div class="buttons">
+              <a href="/auth/google" class="button is-primary">
+                <strong>Sign in</strong>
+              </a>
+            </div>
+          </div>
           {/if}
         </div>
       </div>
