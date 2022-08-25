@@ -11,7 +11,7 @@ if [[ "${ACTION}" =~ "template" ]]; then
     --set env.GOOGLE_CLIENT_SECRET=TEST_CLIENT_SECRET \
     --set env.REDIRECT_URL=https://TEST_REDIRECT_URL \
     --set env.SESSION_SECRET=TEST_SESSION_SECRET \
-    --set env.REDIS_URL="redis://${RELEASE}-redis-master:6379" \
+    --set global.redis.password=TEST_REDIS_PASSWORD \
     ${RELEASE} photo-mosaic
 else
   helm ${ACTION} \
@@ -22,6 +22,6 @@ else
     --set env.GOOGLE_CLIENT_SECRET=${GOOGLE_CLIENT_SECRET} \
     --set env.REDIRECT_URL=${REDIRECT_URL} \
     --set env.SESSION_SECRET=${SESSION_SECRET} \
-    --set env.REDIS_URL="redis://${RELEASE}-redis-master:6379" \
+    --set global.redis.password=${REDIS_PASSWORD} \
     ${RELEASE} photo-mosaic
 fi

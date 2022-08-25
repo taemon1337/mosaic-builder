@@ -41,7 +41,7 @@ spec:
             - name: GOOGLE_CLIENT_SECRET
               value: {{ required "env.GOOGLE_CLIENT_SECRET is required" .Values.env.GOOGLE_CLIENT_SECRET }}
             - name: REDIS_URL
-              value: {{ required "env.REDIS_URL is required" .Values.env.REDIS_URL }}
+              value: redis://{{ required "global.redis.password is required" .Values.global.redis.password }}@{{ .Release.Name }}-redis-master:6379
             {{- if .Values.additionalEnv }}
             {{- toYaml .Values.additionalEnv | nindent 12 }}
             {{- end }}

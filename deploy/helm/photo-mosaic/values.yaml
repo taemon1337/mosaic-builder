@@ -95,3 +95,7 @@ affinity: {}
 
 # the redis dependent chart values
 redis: {}
+
+global:
+  redis:
+    password: ""
