@@ -54,20 +54,42 @@ securityContext: {}
   # runAsUser: 1000
 
 service:
-  type: ClusterIP
+  type: LoadBalancer
   port: 443
 
 ingress:
   enabled: false
-  className: ""
-  annotations: {}
-    # kubernetes.io/ingress.class: nginx
-    # kubernetes.io/tls-acme: "true"
-  hosts:
-    - host: mosaic.stello.org
-      paths:
-        - path: /
-          pathType: ImplementationSpecific
+  annotations:
+    kubernetes.io/ingress.class: gce
+    kubernetes.io/ingress.allow-http: "true"
+    kubernetes.io/ingress.global-static-ip-name: static-ip
+    networking.gke.io/managed-certificates: photo-mosaic-managed-certificate
+#  defaultBackend:
+#    service:
+#      name: web
+#      port:
+#        number: 3000
+# if host is defined then use service to build ingress
+  host:
+  path:
+  pathType:
+  service:
+    name:
+    port:
+      number:
+      name:
+# apply rules if host is empty and rules are not
+  rules: []
+#    - host: test.stello.cloud
+#      http:
+#        paths:
+#        - path: /
+#          pathType: Prefix
+#          backend:
+#            service:
+#              name: photo-mosaic
+#              port:
+#                number: 3000
   tls: []
   #  - secretName: chart-example-tls
   #    hosts:
@@ -92,6 +114,14 @@ nodeSelector: {}
 tolerations: []
 
 affinity: {}
+
+# gke specific custom resources
+gke:
+  enabled: false
+  managed_certificate:
+    enabled: true
+    name: photo-mosaic-managed-certificate
+    domains: []
 
 # the redis dependent chart values
 redis: {}

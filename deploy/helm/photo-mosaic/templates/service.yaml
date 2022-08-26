@@ -11,5 +11,9 @@ spec:
       targetPort: https
       protocol: TCP
       name: https
+    - port: 3000
+      targetPort: http
+      protocol: TCP
+      name: http
   selector:
     {{- include "photo-mosaic.selectorLabels" . | nindent 4 }}
