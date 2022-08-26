@@ -64,11 +64,11 @@ ingress:
     kubernetes.io/ingress.allow-http: "true"
     kubernetes.io/ingress.global-static-ip-name: static-ip
     networking.gke.io/managed-certificates: photo-mosaic-managed-certificate
-#  defaultBackend:
-#    service:
-#      name: web
-#      port:
-#        number: 3000
+  defaultBackend:
+    service:
+      name: photo-mosaic
+      port:
+        number: 3000
 # if host is defined then use service to build ingress
   host:
   path:

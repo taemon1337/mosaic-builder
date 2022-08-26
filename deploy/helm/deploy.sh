@@ -29,6 +29,7 @@ else
     --set env.SESSION_SECRET=${SESSION_SECRET} \
     --set ingress.enabled=true \
     --set ingress.host=${MOSAIC_HOSTNAME} \
+    --set ingress.service.port.number=3000 \
     --set gke.enabled=true \
     --set gke.managed_certificate.domains=["${MOSAIC_HOSTNAME}"] \
     --set global.redis.password=${REDIS_PASSWORD} \
