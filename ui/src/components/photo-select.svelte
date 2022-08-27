@@ -8,6 +8,7 @@
   import PhotoFilter from '../components/photo-filter.svelte';
   import * as smartcrop from 'smartcrop';
   import { SearchWithFilter } from '$lib/api.js';
+  import { TileImage } from '$lib/tile-image.js';
 
   let main;
   let filter;
@@ -111,6 +112,9 @@
     if ($MainPhotoUrl) {
       SelectTilePhoto(photo, el);
     } else {
+      let ti = new TileImage(photo.id, photo.baseUrl);
+      ti.load();
+      console.log(ti);
       MainPhoto.set(photo);
     }
   }

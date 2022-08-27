@@ -1,6 +1,13 @@
 // https://github.com/Parthipan-Natkunam/datastructure-practical-applications
 import { bmvbhash } from 'blockhash-core';
 
+export const ComputeSimilarity = function (img) {
+  let c = img.getCanvas();
+  let ctx = c.getContext('2d');
+  let imgData = ctx.getImageData(0, 0, img.width, img.height);
+  return hash(imgData);
+}
+
 export const hash = async function (imgData) {
   try {
     const h = await bmvbhash(imgData, 8);
