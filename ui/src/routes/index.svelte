@@ -19,9 +19,30 @@
     <div class="container has-text-centered">
         <div class="columns is-multiline is-vcentered">
             <div class="column is-6">
-                <figure class="image">
-                    <img src={photos[current]} alt="Birthday Collage" style="width:540px;height:720px;">
-                </figure>
+              <div class="columns">
+                <div class="column is-half">
+                  <figure class="image">
+                      <img src={photos[0]} alt="Birthday Collage" style="width:270px;height:360px;">
+                  </figure>
+                </div>
+                <div class="column is-half">
+                  <figure class="image">
+                      <img src={photos[1]} alt="Birthday Collage" style="width:270px;height:360px;">
+                  </figure>
+                </div>
+              </div>
+              <div class="columns">
+                <div class="column is-half">
+                  <figure class="image">
+                      <img src={photos[2]} alt="Birthday Collage" style="width:270px;height:360px;">
+                  </figure>
+                </div>
+                <div class="column is-half">
+                  <figure class="image">
+                      <img src={photos[3]} alt="Birthday Collage" style="width:270px;height:360px;">
+                  </figure>
+                </div>
+              </div>
             </div>
             <div class="column is-5 is-offset-1">
                 <figure class="image is-128x128 mr-auto ml-auto">
