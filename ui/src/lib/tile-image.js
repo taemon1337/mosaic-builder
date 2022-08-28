@@ -1,4 +1,4 @@
-import { writable } from 'svelte/store';
+import { writable, get } from 'svelte/store';
 import { Image } from 'image-js';
 import { GetAverageColorOfTile } from '$lib/average-color.js';
 import { ComputeSimilarity } from '$lib/hashmap.js';
@@ -17,6 +17,7 @@ export const TileImageUrl = function (baseUrl, opts) {
 export const TileImage = function(id, baseUrl, opts) {
   opts = Object.assign({}, opts);
   this.id = id;
+  this.storeId = writable(null);
   this.baseUrl = baseUrl;
   this.tileWidth = opts.tileWidth || 300;
   this.tileHeight = opts.tileHeight || 300;
@@ -33,6 +34,7 @@ TileImage.prototype = {
 
   load: async function () {
     Image.load(this.tileImageUrl()).then((img) => {
+      console.log('loaded image ', img);
       this.image.set(img.rgba8());
       this.averageColor = GetAverageColorOfTile(img);
       this.loading.set(false);
@@ -55,12 +57,10 @@ TileImage.prototype = {
     }).catch(this.handleError("could not get suggested crop of photo"));
   },
 
-  handleError: function (msg) {
-    return (e) => {
-      console.log("[ERROR] " + msg + this.id, e);
-      this.error.set(e);
-      this.loading.set(false);
-    }
+  drawToCanvas: function (canvas) {
+    let ctx = canvas.getContext('2d');
+    let img = this.image.resize({ width: canvas.width, height: canvas.height });
+    ctx.drawImage(img, 0, 0);
   },
 
   loadFullSize: async function () {
@@ -81,4 +81,13 @@ TileImage.prototype = {
   resize: function (opts) {
     this.image.resize(opts);
   },
+
+  handleError: function (msg) {
+    return (e) => {
+      console.log("[ERROR] " + msg + this.id, e);
+      this.error.set(e);
+      this.loading.set(false);
+    }
+  },
+
 }

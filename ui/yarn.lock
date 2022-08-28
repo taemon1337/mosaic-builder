@@ -1869,10 +1869,39 @@
   "resolved" "https://registry.npmjs.org/ms/-/ms-2.0.0.tgz"
   "version" "2.0.0"
 
+"nanoassert@^1.1.0":
+  "integrity" "sha512-C40jQ3NzfkP53NsO8kEOFd79p4b9kDXQMwgiY1z8ZwrDZgUyom0AHwGegF4Dm99L+YoYhuaB0ceerUcXmqr1rQ=="
+  "resolved" "https://registry.npmjs.org/nanoassert/-/nanoassert-1.1.0.tgz"
+  "version" "1.1.0"
+
+"nanobus@^4.5.0":
+  "integrity" "sha512-7sBZo9wthqNJ7QXnfVXZL7fkKJLN55GLOdX+RyZT34UOvxxnFtJe/c7K0ZRLAKOvaY1xJThFFn0Usw2H9R6Frg=="
+  "resolved" "https://registry.npmjs.org/nanobus/-/nanobus-4.5.0.tgz"
+  "version" "4.5.0"
+  dependencies:
+    "nanoassert" "^1.1.0"
+    "nanotiming" "^7.2.0"
+    "remove-array-items" "^1.0.0"
+
 "nanoid@^3.3.4":
   "integrity" "sha512-MqBkQh/OHTS2egovRtLk45wEyNXwF+cokD+1YPf9u5VfJiRdAiRwB2froX5Co9Rh20xs4siNPm8naNotSD6RBw=="
   "resolved" "https://registry.npmjs.org/nanoid/-/nanoid-3.3.4.tgz"
   "version" "3.3.4"
+
+"nanoscheduler@^1.0.2":
+  "integrity" "sha512-jBbrF3qdU9321r8n9X7yu18DjP31Do2ItJm3mWrt90wJTrnDO+HXpoV7ftaUglAtjgj9s+OaCxGufbvx6pvbEQ=="
+  "resolved" "https://registry.npmjs.org/nanoscheduler/-/nanoscheduler-1.0.3.tgz"
+  "version" "1.0.3"
+  dependencies:
+    "nanoassert" "^1.1.0"
+
+"nanotiming@^7.2.0":
+  "integrity" "sha512-l3lC7v/PfOuRWQa8vV29Jo6TG10wHtnthLElFXs4Te4Aas57Fo4n1Q8LH9n+NDh9riOzTVvb2QNBhTS4JUKNjw=="
+  "resolved" "https://registry.npmjs.org/nanotiming/-/nanotiming-7.3.1.tgz"
+  "version" "7.3.1"
+  dependencies:
+    "nanoassert" "^1.1.0"
+    "nanoscheduler" "^1.0.2"
 
 "natural-compare@^1.4.0":
   "integrity" "sha512-OWND8ei3VtNC9h7V60qff3SVobHr996CTwgxubgyQYEpg290h9J0buyECNNJexkFm5sOajh5G116RYA1c8ZMSw=="
@@ -2127,6 +2156,11 @@
   "integrity" "sha512-pq2bWo9mVD43nbts2wGv17XLiNLya+GklZ8kaDLV2Z08gDCsGpnKn9BFMepvWuHCbyVvY7J5o5+BVvoQbmlJLg=="
   "resolved" "https://registry.npmjs.org/regexpp/-/regexpp-3.2.0.tgz"
   "version" "3.2.0"
+
+"remove-array-items@^1.0.0":
+  "integrity" "sha512-MXW/jtHyl5F1PZI7NbpS8SOtympdLuF20aoWJT5lELR1p/HJDd5nqW8Eu9uLh/hCRY3FgvrIT5AwDCgBODklcA=="
+  "resolved" "https://registry.npmjs.org/remove-array-items/-/remove-array-items-1.1.1.tgz"
+  "version" "1.1.1"
 
 "resolve-from@^4.0.0":
   "integrity" "sha512-pb/MYmXstAkysRFx8piNI1tGFNQIFA3vkE3Gq4EuA1dF6gHp/+vgZqsCGJapvy8N3Q+4o7FwvquPJcnZ7RYy4g=="

@@ -1,6 +1,7 @@
 <script>
   import { createEventDispatcher } from 'svelte';
   import { Photos, MainPhoto, MainPhotoUrl, TilePhotos, MinimumTiles, ColorPhotos, GetAverageColor, TileWidth, TileHeight, TargetWidth, TargetHeight, TargetScale, AutoCrop } from "../store/photo.js";
+  import { TileStore } from '../store/tilestore.js';
   import { CONTENT_CATEGORY } from '$lib/constants.js';
   import { calculateSimilarity } from '$lib/hashmap.js';
   import ThumbPhoto from '../components/thumbphoto.svelte';
@@ -9,6 +10,7 @@
   import * as smartcrop from 'smartcrop';
   import { SearchWithFilter } from '$lib/api.js';
   import { TileImage } from '$lib/tile-image.js';
+  import { TileImageStore } from '$lib/tile-image-store.js';
 
   let main;
   let filter;
@@ -18,6 +20,10 @@
   let loadingPhotos = false;
   let loadingTiles = false;
   let similarityThreshold = 80;
+  let photos = TileStore.photos;
+  let tiles = TileStore.tiles;
+  let mainphoto = TileStore.mainphoto;
+  let loading = TileStore.loading;
 
   const dispatch = createEventDispatcher();
 
@@ -26,19 +32,29 @@
     filter = evt.detail;
     filter.pageSize = pageSize;
     filter.maxPages = maxPages;
-    return SearchWithFilter(filter).then(resp => {
-      if (resp && resp.photos) {
-        $Photos = { photos: [...$Photos.photos, ...resp.photos]}
-      }
-      loadingPhotos = false;
-    }).catch(function (e) {
-      console.warn('Error loading photos', e);
-      loadingPhotos = false;
-    });
+    TileStore.search(filter);
   }
 
   const emitNext = function () {
     dispatch('next');
+  }
+
+  const select = (tile) => {
+    if ($mainphoto) {
+      console.log('selecting tile' + tile.id);
+      $tiles = [...$tiles, tile];
+      $photos = $photos.filter(p => p.id !== tile.id);
+    } else {
+      console.log('selecting main photo ' + tile.id);
+      tile.loadFullSize();
+      mainphoto.set(tile);
+    }
+  }
+
+  const unselect = (tile, el) => {
+    console.log('unselecting ', tile.id);
+    $photos = [...$photos, tile];
+    $tiles = $tiles.filter(t => t.id !== tile.id);
   }
 
   const RemoveSimilar = function () {
@@ -107,40 +123,20 @@
     $TileHeight = tilesize;
   }
 
-  // if the main photo is already selected, then select photo tile
-  const SelectPhoto = (photo, el) => {
-    if ($MainPhotoUrl) {
-      SelectTilePhoto(photo, el);
-    } else {
-      let ti = new TileImage(photo.id, photo.baseUrl);
-      ti.load();
-      console.log(ti);
-      MainPhoto.set(photo);
-    }
-  }
-
   const SelectAllPhotos = function () {
-    loadingTiles = true;
-    $Photos.photos.forEach(function (photo) {
-      SelectTilePhoto(photo, document.getElementById("a-"+photo.id))
-    });
-    loadingTiles = false;
+    $photos.forEach(p => select(p));
   }
 
   const DeselectAllTiles = function () {
-    TilePhotos.set([]);
+    $tiles.forEach(t => unselect(t));
   }
 
   const ClearAllPhotos = function () {
-    Photos.set({ photos: [] });
+    photos.set([]);
   }
 
   const DeselectMainPhoto = function () {
-    MainPhoto.set(null);
-  }
-
-  const DeselectTilePhoto = (id) => {
-    $TilePhotos = $TilePhotos.filter(photo => photo.id !== id)
+    mainphoto.set(null);
   }
 
 </script>
@@ -177,7 +173,7 @@
               {#if loadingPhotos}
                 loading...
               {:else}
-                {$Photos.photos.length} photos
+                {$photos.length} photos
               {/if}
             </span>
           </div>
@@ -185,12 +181,10 @@
         <div class="card-content">
           <div class="content">
             <div class="columns is-gapless is-multiline is-mobile">
-              {#each $Photos.photos as photo}
-                <div class="column is-1">
-                  <a id="a-{photo.id}" on:click|preventDefault={SelectPhoto(photo, this)} href="#">
-                    <ThumbPhoto photo={photo} />
-                  </a>
-                </div>
+              {#each $photos as photo (photo.id)}
+                <a id="a-{photo.id}" on:click|preventDefault={select(photo)} href="#">
+                  <ThumbCanvas tile={photo} />
+                </a>
               {/each}
             </div>
           </div>
@@ -243,10 +237,10 @@
         <div class="card-content">
           <div class="content">
             <div class="columns is-gapless is-multiline is-mobile">
-              {#each $TilePhotos as photo}
-              <a on:click|preventDefault={DeselectTilePhoto(photo.id)} href="#">
-                <ThumbCanvas photo={photo} />
-              </a>
+              {#each $tiles as tile (tile.id)}
+                <a on:click|preventDefault={unselect(tile, this)} href="#">
+                  <ThumbCanvas tile={tile} />
+                </a>
               {/each}
             </div>
           </div>
@@ -275,7 +269,7 @@
 
         <div class="card-content">
           <div class="content">
-            {#if $MainPhotoUrl}
+            {#if $mainphoto}
               <img bind:this={main} src="{$MainPhotoUrl}" />
             {:else}
               <article class="message is-primary">
@@ -287,7 +281,7 @@
           </div>
         </div>
         <footer class="card-footer">
-          {#if $MainPhotoUrl}
+          {#if $mainphoto}
           <a href="#" on:click|preventDefault={DeselectMainPhoto} class="card-footer-item">Clear Main Photo</a>
           {/if}
         </footer>

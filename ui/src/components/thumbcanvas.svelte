@@ -1,20 +1,33 @@
 <script>
   import { onMount } from 'svelte';
-  export let photo;
+  import { TileWidth, TileHeight } from "../store/photo.js";
+  import { TileStore } from "../store/tilestore.js";
+
+  export let id = null;
+  export let tile = null;
+
   let canvas;
-  let width = 64;
-  let height = 64;
+  let tiles = TileStore.tiles;
+
+  const draw = () => {
+    tile.image.subscribe(img => {
+      console.log('image has changed', img);
+      if (img) {
+        let ctx = canvas.getContext('2d');
+        ctx.drawImage(img.resize({ width: $TileWidth, height: $TileHeight }).getCanvas(), 0, 0);
+      }
+    });
+  }
 
   onMount(() => {
-    photo.imageElement.addEventListener('imaged', (e) => {
-      if (canvas && photo.image) {
-        canvas.width = width;
-        canvas.height = height;
-        let img = photo.image.resize({ width: width, height: height });
-        let ctx = canvas.getContext('2d');
-        ctx.drawImage(img.getCanvas(), 0, 0);
+    if (tile) {
+      draw()
+    } else {
+      if (id) {
+        tile = $tiles.filter(t => t.id == id).pop(0);
+        draw();
       }
-    }, false);
+    }
   });
 </script>
-<canvas bind:this={canvas}></canvas>
+<canvas id={id} bind:this={canvas} width={$TileWidth} height={$TileHeight}></canvas>

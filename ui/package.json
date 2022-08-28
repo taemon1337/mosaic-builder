@@ -23,6 +23,7 @@
 		"eslint-plugin-svelte3": "^4.0.0",
 		"googlephotos": "^0.3.5",
 		"image-js": "^0.35.1",
+		"nanobus": "^4.5.0",
 		"paper": "^0.12.15",
 		"postcss": "^8.4.14",
 		"prettier": "^2.6.2",
