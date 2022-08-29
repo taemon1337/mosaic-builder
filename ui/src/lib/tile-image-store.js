@@ -6,6 +6,7 @@ export const TileImageStore = function (id, opts) {
   this.id = id;
   this.photos = writable([]);
   this.tiles = writable([]);
+  this.tileindex = writable([]);
   this.mainphoto = writable(null);
   this.loading = writable(false);
 };

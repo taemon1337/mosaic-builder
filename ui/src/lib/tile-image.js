@@ -83,7 +83,7 @@ TileImage.prototype = {
   },
 
   resize: function (opts) {
-    this.image.resize(opts);
+    return get(this.image).resize(opts);
   },
 
   handleError: function (msg) {

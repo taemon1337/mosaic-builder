@@ -1,6 +1,7 @@
 <script>
   import { createEventDispatcher } from 'svelte';
-  import { MainImage, TilePhotos, MinimumTiles, TileIndex, TargetWidth, TargetHeight, TargetScale, TargetModes, TileWidth, TileHeight, AutoCrop } from "../store/photo.js";
+  import { MinimumTiles, TargetWidth, TargetHeight, TargetScale, TargetModes, TileWidth, TileHeight, AutoCrop } from "../store/photo.js";
+  import { TileStore } from '../store/tilestore.js';
   import { Image } from 'image-js';
   import * as smartcrop from 'smartcrop';
   import { blendOnto } from '$lib/blender.js';
@@ -9,50 +10,41 @@
   let mode = 'screen';
   let scale = 1;
   let progressBar;
+  let tiles = TileStore.tiles;
+  let tileindex = TileStore.tileindex;
+  let mainimage = TileStore.mainphoto;
 
   const dispatch = createEventDispatcher();
   const emitPrev = function () { dispatch('prev'); }
 
   const FindTile = function (id) {
-    return $TilePhotos.filter(p => p.id == id).pop();
+    return $tiles.filter(p => p.id == id).pop();
   }
 
   const ClearProgress = async function () {
-    await new Promise(res => setTimeout(res, 5000))
+    await new Promise(res => setTimeout(res, 2000))
     progressBar.value = 0;
     progressBar.className = "is-hidden";
-  }
-
-  const getBase64Image = function (photo, size) {
-    let el = document.getElementById("a-" + photo.id);
-    let c = document.createElement("canvas");
-    let ctx = c.getContext('2d');
-    let img = el.children[0];
-    c.width = img.width;
-    c.height = img.height;
-    ctx.drawImage(img, 0, 0);
-    let dataURL = c.toDataURL("image/jpeg");
-    return dataURL.replace(/^data:image\/(png|jpg);base64,/, "");
   }
 
   const buildMosaic = async function () {
     console.log('building mosaic...');
     resetMosaic();
     let grid = document.getElementById('grid-canvas');
-    let tileIndex = [...$TileIndex];
+    let tileIndex = [...$tileindex];
     let progress = 1;
     let total = 0;
 
     let ctx = mosaic.getContext('2d');
     let gridctx = grid.getContext('2d');
 
-    let mainimg = $MainImage;
+    let mainimg = $mainimage;
     let gridimg = Image.fromCanvas(grid);
 
     let resizeOpts = { width: $TargetWidth * $TargetScale, height: $TargetHeight * $TargetScale };
     let tileOpts = { width: $TileWidth * $TargetScale, height: $TileHeight * $TargetScale };
 
-    total = Math.floor(($TargetWidth * $TargetHeight) / ($TileWidth * $TileHeight));
+    total = Math.floor(($TargetWidth * $TargetHeight) / ($TileWidth * $TileHeight)) || 1;
     progressBar.className = "progress is-primary";
     progressBar.value = Math.floor(progress / total * 100);
 
@@ -62,18 +54,13 @@
     console.log('reloading and resizing all tile photos...');
     for (let x = 0; x < resizeOpts.width; x+=tileOpts.width) {
       for (let y = 0; y < resizeOpts.height; y+=tileOpts.height) {
-        let photoId = tileIndex.splice(0,1);
-        let photo = FindTile(photoId);
-        if (photo) {
-          let dataurl = getBase64Image(photo, tileOpts);
-          let img = await Image.load(dataurl);
-          img = img.resize(tileOpts);
-          smartcrop.crop(img.getCanvas(), tileOpts).then(function (suggest) {
-            if ($AutoCrop) {
-              img = img.crop(suggest.topCrop);
-            }
-            ctx.drawImage(img.getCanvas(), x, y);
-          });
+        let tileId = tileIndex.splice(0,1);
+        let tile = FindTile(tileId);
+        if (tile) {
+          if ($AutoCrop && tile.smartcrop !== null) {
+            tileOpts = tile.smartcrop;
+          }
+          tile.drawToCanvas(mosaic, x, y, tileOpts);
         }
 
         progress++;
@@ -91,6 +78,7 @@
 
     mainctx.drawImage(mainimg.getCanvas(), 0, 0);
     blendOnto(mainctx, ctx, mode);
+    ClearProgress();
     console.log('mosaic done');
   }
 
@@ -102,7 +90,7 @@
   }
 
   const blendMain = function () {
-    let mainimg = $MainImage;
+    let mainimg = $mainimage;
     let ctx = mosaic.getContext('2d');
     let resizeOpts = { width: $TargetWidth * $TargetScale, height: $TargetHeight * $TargetScale };
     mainimg = mainimg.resize(resizeOpts);
@@ -127,7 +115,7 @@
     <div class="column is-2">
       <div class="form">
         <div class="field">
-          <button on:click|preventDefault={buildMosaic} class="button is-primary is-large" disabled={!$MainImage || $TilePhotos.length < $MinimumTiles}>Generate Mosaic</button>
+          <button on:click|preventDefault={buildMosaic} class="button is-primary is-large" disabled={!$mainimage || $tiles.length < $MinimumTiles}>Generate Mosaic</button>
         </div>
 
         <div class="field">

@@ -1,14 +1,14 @@
 <script>
   import { createEventDispatcher } from 'svelte';
-  import { MinimumTiles, ColorPhotos, GetAverageColor, TileWidth, TileHeight, TargetWidth, TargetHeight, TargetScale, AutoCrop } from "../store/photo.js";
+  import { MinimumTiles, ColorPhotos, TileWidth, TileHeight, TargetWidth, TargetHeight, TargetScale, AutoCrop } from "../store/photo.js";
   import { TileStore } from '../store/tilestore.js';
   import { CONTENT_CATEGORY } from '$lib/constants.js';
   import { calculateSimilarity } from '$lib/similarity.js';
-  import ThumbPhoto from '../components/thumbphoto.svelte';
   import ThumbCanvas from '../components/thumbcanvas.svelte';
   import PhotoFilter from '../components/photo-filter.svelte';
   import * as smartcrop from 'smartcrop';
   import { SearchWithFilter } from '$lib/api.js';
+  import { GetAverageColorOfTile } from '$lib/average-color.js';
   import { TileImage } from '$lib/tile-image.js';
   import { TileImageStore } from '$lib/tile-image-store.js';
 
@@ -16,7 +16,7 @@
   let filter;
   let pageSize = 100;
   let maxPages = 3;
-  let tilesize = 150;
+  let tilesize = $TileWidth;
   let loadingTiles = false;
   let loadingPhotos = false;
   let similarityThreshold = 80;
@@ -43,6 +43,9 @@
   const select = (tile) => {
     if ($mainphoto) {
       loadingTiles = true;
+      if (!tile.averageColor) {
+        tile.averageColor = GetAverageColorOfTile(tile);
+      }
       if (!tile.colorhash) {
         tile.computeSimilarity().then(() => {
           $tiles = [...$tiles, tile];
@@ -67,8 +70,6 @@
   }
 
   const RemoveSimilar = function () {
-    $tiles.forEach(t => t.computeSimilarity());
-
     let ids = $tiles.map(p => p.id);
     let sims = $tiles.map(p => p.colorhash);
     let matched = {};
@@ -78,12 +79,14 @@
     ids.forEach((p1, i) => {
       ids.forEach((p2, j) => {
         if (p1 !== p2) {
-          let pct = calculateSimilarity(sims[i], sims[j]);
-          if (pct > threshold) {
-            matched[p1] = matched[p1] || [];
-            matched[p2] = matched[p2] || [];
-            if (matched[p1].indexOf(p2) < 0) { matched[p1].push(p2); }
-            if (matched[p2].indexOf(p1) < 0) { matched[p2].push(p1); }
+          if (sims[i] && sims[j]) {
+            let pct = calculateSimilarity(sims[i], sims[j]);
+            if (pct > threshold) {
+              matched[p1] = matched[p1] || [];
+              matched[p2] = matched[p2] || [];
+              if (matched[p1].indexOf(p2) < 0) { matched[p1].push(p2); }
+              if (matched[p2].indexOf(p1) < 0) { matched[p2].push(p1); }
+            }
           }
         }
       });
@@ -200,8 +203,8 @@
           </div>
 
           <div class="select is-small is-rounded mt-2 mr-2">
-            <select bind:value={tilesize}>
-              {#each [150,200,300,400,500,1000] as x}
+            <select bind:value={tilesize} on:change={setTileSizes}>
+              {#each [50,100,150,200,300,400,500,1000] as x}
               <option value={x}>
                 {x}x{x} tiles
               </option>
@@ -225,7 +228,7 @@
             <div class="columns is-gapless is-multiline is-mobile">
               {#each $tiles as tile (tile.id)}
                 <a on:click|preventDefault={unselect(tile, this)} href="#">
-                  <ThumbCanvas tile={tile} />
+                  <ThumbCanvas tile={tile} width={$TileWidth} height={$TileHeight} />
                 </a>
               {/each}
             </div>
