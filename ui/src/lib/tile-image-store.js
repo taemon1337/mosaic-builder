@@ -8,24 +8,30 @@ export const TileImageStore = function (id, opts) {
   this.tiles = writable([]);
   this.mainphoto = writable(null);
   this.loading = writable(false);
-}
+};
 
 TileImageStore.prototype = {
   id: 0,
   constructor: TileImageStore,
 
   search: function (filter) {
-    this.loading = writable(true);
+    this.loading.set(true);
     SearchWithFilter(filter).then((resp) => {
       if (resp && resp.photos) {
         resp.photos.forEach((photo) => {
-          this.addPhoto(new TileImage(photo.id, photo.baseUrl));
+          let tile = new TileImage(photo.id, photo.baseUrl);
+          if (this.getPhotoById(tile.id) !== null) {
+            console.log("[DUPLICATE] photo " + tile.id + " is already in store " + this.id);
+          } else {
+            tile.load().then(() => {
+              this.addPhoto(tile);
+            }).catch(this.handleError("could not add photo to store"));
+          }
         });
       } else {
         console.log("[WARN] no photos found in resp ", resp);
       }
-      get(this.photos).forEach((tile) => tile.load());
-      this.loading = writable(false);
+      this.loading.set(false);
     }).catch(this.handleError("searching with filter " + JSON.stringify(filter)));
   },
 
@@ -57,10 +63,20 @@ TileImageStore.prototype = {
     this.tiles = get(this.tiles).filter(t => t.id == id);
   },
 
+  getPhotoById: function (id) {
+    let arr = get(this.photos).filter(p => p.id == id);
+    return arr.length > 0 ? arr[0] : null;
+  },
+
+  getTileById: function (id) {
+    let arr = get(this.tiles).filter(p => p.id == id);
+    return arr.length > 0 ? arr[0] : null;
+  },
+
   handleError: function (msg) {
     return (e) => {
       console.log("[ERROR] " + msg, e);
       this.loading = writable(false);
     }
   },
-}
+};

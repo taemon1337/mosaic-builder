@@ -5,16 +5,17 @@
 
   export let id = null;
   export let tile = null;
+  export let width = $TileWidth;
+  export let height = $TileHeight;
 
   let canvas;
   let tiles = TileStore.tiles;
 
   const draw = () => {
     tile.image.subscribe(img => {
-      console.log('image has changed', img);
-      if (img) {
+      if (canvas && img) {
         let ctx = canvas.getContext('2d');
-        ctx.drawImage(img.resize({ width: $TileWidth, height: $TileHeight }).getCanvas(), 0, 0);
+        ctx.drawImage(img.resize({ width: width, height: height }).getCanvas(), 0, 0);
       }
     });
   }
@@ -30,4 +31,4 @@
     }
   });
 </script>
-<canvas id={id} bind:this={canvas} width={$TileWidth} height={$TileHeight}></canvas>
+<canvas id={id} bind:this={canvas} width={width} height={height}></canvas>

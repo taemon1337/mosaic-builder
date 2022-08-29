@@ -1,7 +1,7 @@
 import { writable, get } from 'svelte/store';
 import { Image } from 'image-js';
 import { GetAverageColorOfTile } from '$lib/average-color.js';
-import { ComputeSimilarity } from '$lib/hashmap.js';
+import { ComputeSimilarity } from '$lib/similarity.js';
 import * as smartcrop from 'smartcrop';
 
 export const TileImageUrl = function (baseUrl, opts) {
@@ -12,7 +12,7 @@ export const TileImageUrl = function (baseUrl, opts) {
   } else {
     return baseUrl;
   }
-}
+};
 
 export const TileImage = function(id, baseUrl, opts) {
   opts = Object.assign({}, opts);
@@ -21,12 +21,13 @@ export const TileImage = function(id, baseUrl, opts) {
   this.baseUrl = baseUrl;
   this.tileWidth = opts.tileWidth || 300;
   this.tileHeight = opts.tileHeight || 300;
-  this.smartcrop = {};
-  this.colorhash = [];
+  this.smartcrop = null;
+  this.colorhash = null;
+  this.averageColor = null;
   this.image = writable(null);
   this.error = writable(null);
   this.loading = writable(false);
-}
+};
 
 TileImage.prototype = {
   id: 0,
@@ -34,7 +35,6 @@ TileImage.prototype = {
 
   load: async function () {
     Image.load(this.tileImageUrl()).then((img) => {
-      console.log('loaded image ', img);
       this.image.set(img.rgba8());
       this.averageColor = GetAverageColorOfTile(img);
       this.loading.set(false);
@@ -42,32 +42,36 @@ TileImage.prototype = {
   },
 
   computeSimilarity: async function() {
-    this.loading.set(true);
-    ComputeSimilarity(this.image).then((s) => {
-      this.colorhash = s;
-      this.loading.set(false);
-    }).catch(this.handleError("computing similarity of photo "));
+    let img = get(this.image);
+    if (img) {
+      this.loading.set(true);
+      return ComputeSimilarity(img).then((s) => {
+        this.colorhash = s;
+        this.loading.set(false);
+      }).catch(this.handleError("computing similarity of photo "));
+    }
   },
 
   computeCrop: async function () {
     this.loading.set(true);
-    smartcrop.crop(this.image, { width: this.tileWidth, height: this.tileHeight }).then((sugg) => {
+    return smartcrop.crop(this.image, { width: this.tileWidth, height: this.tileHeight }).then((sugg) => {
       this.smartcrop = sugg.topCrop;
       this.loading.set(false);
     }).catch(this.handleError("could not get suggested crop of photo"));
   },
 
-  drawToCanvas: function (canvas) {
+  drawToCanvas: function (canvas, x, y, resizeOpts) {
+    resizeOpts = Object.assign({ width: canvas.width, height: canvas.height }, resizeOpts);
     let ctx = canvas.getContext('2d');
-    let img = this.image.resize({ width: canvas.width, height: canvas.height });
-    ctx.drawImage(img, 0, 0);
+    let img = get(this.image).resize(resizeOpts);
+    ctx.drawImage(img.getCanvas(), x, y);
   },
 
   loadFullSize: async function () {
-    Image.load(this.fullImageUrl()).then((img) => {
+    return Image.load(this.fullImageUrl()).then((img) => {
       this.image.set(img.rgba8());
+      return this.image;
     }).catch((err) => console.log("Could not load photo " + this.id, err));
-
   },
 
   tileImageUrl: function () {
@@ -89,5 +93,4 @@ TileImage.prototype = {
       this.loading.set(false);
     }
   },
-
-}
+};

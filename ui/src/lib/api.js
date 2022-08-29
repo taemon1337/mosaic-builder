@@ -10,14 +10,14 @@ export const Me = function () {
       console.log('USER', data);
       User.set(data)
     })
-}
+};
 
 export const Search = function () {
   return fetch('/api/search', { credentials: 'include' })
     .then(resp => {
       return resp.ok ? resp.json() : null;
     })
-}
+};
 
 export const SearchWithFilter = function (filter) {
   return fetch('/api/filter', {
@@ -39,8 +39,8 @@ export const SearchWithFilter = function (filter) {
     } else {
       return null;
     }
-  })
-}
+  });
+};
 
 export const GetPhoto = function (domain, path) {
   return fetch('/api/photo', {
@@ -54,4 +54,4 @@ export const GetPhoto = function (domain, path) {
     console.log('[PHOTO]', resp);
     return resp.ok ? resp.json() : null;
   })
-}
+};

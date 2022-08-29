@@ -1,15 +1,23 @@
 <script>
   import { tick, createEventDispatcher } from 'svelte';
-  import { MainPhotoUrl, MainImage, TilePhotos, MinimumTiles, TileIndex, TileWidth, TileHeight, TileProgress, TargetWidth, TargetHeight, AllowDuplicateTiles, UniqueTiles, GetAverageColorOfTile } from "../store/photo.js";
+  import { MinimumTiles, TileIndex, TileWidth, TileHeight, TileProgress, TargetWidth, TargetHeight, AllowDuplicateTiles, UniqueTiles, GetAverageColorOfTile } from "../store/photo.js";
+  import { TileStore } from '../store/tilestore.js';
   import { FindAndRemoveClosestTileByColor } from '$lib/colors.js';
   import { Image } from 'image-js';
 
   export let grid;
   export let mode = "colormatch";
 
+  let tiles = TileStore.tiles;
+  let mainphoto = TileStore.mainphoto;
+  let mainimage = $mainphoto?.image;
   let percentDone = 0;
   let retries = 3;
   let progressBar;
+
+  mainphoto.subscribe((val) => {
+    mainimage = $mainphoto?.image;
+  });
 
   const dispatch = createEventDispatcher();
 
@@ -55,18 +63,18 @@
     let y = 0;
     let i = 0;
 
-    if ($TilePhotos.length < 1) {
+    if ($tiles.length < 1) {
       console.log('No tiles selected');
       return;
     }
 
     for (let x = 0; x < grid.width; x+=$TileWidth) {
       for (let y = 0; y < grid.height; y+=$TileHeight) {
-        let tile = $TilePhotos[i];
+        let tile = $tiles[i];
         if (tile.image) {
           let img = tile.image.resize({ width: $TileWidth, height: $TileHeight })
           ctx.drawImage(img.getCanvas(), x, y);
-          i < $TilePhotos.length - 1 ? i += 1 : i = 0; // increment photo index unless we've hit max then reset to 0
+          i < $tiles.length - 1 ? i += 1 : i = 0; // increment photo index unless we've hit max then reset to 0
         } else {
           console.log('[SKIP] Image is missing.', tile);
         }
@@ -97,25 +105,22 @@
     try {
       grid.width = $TargetWidth;
       grid.height = $TargetHeight;
-      let ctx = grid.getContext('2d');
       let x = 0;
       let y = 0;
       let w = $TileWidth;
       let h = $TileHeight;
-      let tiles = [...$TilePhotos];
+      let _tiles = [...$tiles];
       let tileIndex = [];
       let total = w*h;
       let progress = 1;
       progressBar.className = "progress is-primary";
       progressBar.value = Math.floor(progress / total * 100);
 
-      let mainimage = await Image.load($MainPhotoUrl)
       try {
-        MainImage.set(mainimage);
-        $TargetWidth = mainimage.width;
-        $TargetHeight = mainimage.height;
+        $TargetWidth = $mainimage.width;
+        $TargetHeight = $mainimage.height;
 
-        if (tiles.length < 1) {
+        if (_tiles.length < 1) {
           console.log('No tiles selected');
           return;
         }
@@ -123,25 +128,24 @@
         for (let x = 0; x < grid.width; x+=w) {
           for (let y = 0; y < grid.height; y+=h) {
             progress++;
-            if (tiles.length < 1) {
+            if (_tiles.length < 1) {
               if ($UniqueTiles) {
                 console.log('ran out of unique tiles in single mode, stopping');
                 return;
               } else {
-                tiles = [...$TilePhotos]; // reset tiles
+                _tiles = [...$tiles]; // reset tiles
               }
             }
             let cropts = { x: x, y: y, width: w, height: h }
 
-            if (x + w > mainimage.width) { cropts.width = mainimage.width - x }
-            if (y + h > mainimage.height) { cropts.height = mainimage.height - y }
+            if (x + w > $mainimage.width) { cropts.width = $mainimage.width - x }
+            if (y + h > $mainimage.height) { cropts.height = $mainimage.height - y }
 
-            let crop = mainimage.crop(cropts);
+            let crop = $mainimage.crop(cropts);
             let avg = GetAverageColorOfTile(crop);
-            let tile = FindAndRemoveClosestTileByColor(avg, tiles, $AllowDuplicateTiles);
-            let img = tile.image.resize({ width: $TileWidth, height: $TileHeight })
+            let tile = FindAndRemoveClosestTileByColor(avg, _tiles, $AllowDuplicateTiles);
             tileIndex.push(tile.id);
-            ctx.drawImage(img.getCanvas(), x, y);
+            tile.drawToCanvas(grid, x, y, { width: $TileWidth, height: $TileHeight });
             progressBar.value = Math.floor(progress / total * 100);
             await new Promise(res => setTimeout(res, 2))
           }
@@ -162,7 +166,7 @@
     <div class="column is-2">
       <div class="form">
         <div class="field">
-          <button on:click|preventDefault={computeGrid} class="button is-primary is-large" disabled={$TilePhotos.length < $MinimumTiles}>Generate Background</button>
+          <button on:click|preventDefault={computeGrid} class="button is-primary is-large" disabled={$tiles.length < $MinimumTiles}>Generate Background</button>
         </div>
 
         <div class="field">
@@ -225,7 +229,7 @@
 
         <div class="field">
           <label class="label">Mosaic Info</label>
-          <p class="help">{$TilePhotos.length} unique tiles</p>
+          <p class="help">{$tiles.length} unique tiles</p>
           <p class="help">{Math.floor(($TargetWidth*$TargetHeight) / ($TileWidth*$TileHeight))} total tiles</p>
           <p class="help">{$TargetWidth}x{$TargetHeight} pixels</p>
         </div>

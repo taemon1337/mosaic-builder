@@ -1,9 +1,9 @@
 <script>
   import { createEventDispatcher } from 'svelte';
-  import { Photos, MainPhoto, MainPhotoUrl, TilePhotos, MinimumTiles, ColorPhotos, GetAverageColor, TileWidth, TileHeight, TargetWidth, TargetHeight, TargetScale, AutoCrop } from "../store/photo.js";
+  import { MinimumTiles, ColorPhotos, GetAverageColor, TileWidth, TileHeight, TargetWidth, TargetHeight, TargetScale, AutoCrop } from "../store/photo.js";
   import { TileStore } from '../store/tilestore.js';
   import { CONTENT_CATEGORY } from '$lib/constants.js';
-  import { calculateSimilarity } from '$lib/hashmap.js';
+  import { calculateSimilarity } from '$lib/similarity.js';
   import ThumbPhoto from '../components/thumbphoto.svelte';
   import ThumbCanvas from '../components/thumbcanvas.svelte';
   import PhotoFilter from '../components/photo-filter.svelte';
@@ -17,23 +17,24 @@
   let pageSize = 100;
   let maxPages = 3;
   let tilesize = 150;
-  let loadingPhotos = false;
   let loadingTiles = false;
+  let loadingPhotos = false;
   let similarityThreshold = 80;
   let photos = TileStore.photos;
   let tiles = TileStore.tiles;
   let mainphoto = TileStore.mainphoto;
-  let loading = TileStore.loading;
 
   const dispatch = createEventDispatcher();
 
-  const Filter = function(evt) {
+  const Filter = async function(evt) {
     loadingPhotos = true;
+    await new Promise(res => setTimeout(res, 10));
     filter = evt.detail;
     filter.pageSize = pageSize;
     filter.maxPages = maxPages;
-    TileStore.search(filter);
-  }
+    await TileStore.search(filter);
+    loadingPhotos = false;
+  };
 
   const emitNext = function () {
     dispatch('next');
@@ -41,25 +42,35 @@
 
   const select = (tile) => {
     if ($mainphoto) {
-      console.log('selecting tile' + tile.id);
-      $tiles = [...$tiles, tile];
-      $photos = $photos.filter(p => p.id !== tile.id);
+      loadingTiles = true;
+      if (!tile.colorhash) {
+        tile.computeSimilarity().then(() => {
+          $tiles = [...$tiles, tile];
+          $photos = $photos.filter(p => p.id !== tile.id);
+          loadingTiles = false;
+        });
+      } else {
+        $tiles = [...$tiles, tile];
+        $photos = $photos.filter(p => p.id !== tile.id);
+        loadingTiles = false;
+      }
     } else {
       console.log('selecting main photo ' + tile.id);
-      tile.loadFullSize();
-      mainphoto.set(tile);
+      tile.loadFullSize().then(() => mainphoto.set(tile));
     }
   }
 
-  const unselect = (tile, el) => {
+  const unselect = (tile) => {
     console.log('unselecting ', tile.id);
     $photos = [...$photos, tile];
     $tiles = $tiles.filter(t => t.id !== tile.id);
   }
 
   const RemoveSimilar = function () {
-    let ids = $Photos.photos.map(p => p.id);
-    let sims = $Photos.photos.map(p => p.hashmap);
+    $tiles.forEach(t => t.computeSimilarity());
+
+    let ids = $tiles.map(p => p.id);
+    let sims = $tiles.map(p => p.colorhash);
     let matched = {};
     let deleted = [];
     let threshold = similarityThreshold;
@@ -87,35 +98,10 @@
     });
 
     deleted.forEach((id) => {
-      DeselectTilePhoto(id);
+      unselect($tiles.filter(t => t.id == id).pop());
     });
 
     console.log('removed ' + deleted.length + ' similar images');
-  }
-
-  const SelectTilePhoto = (photo, el) => {
-    let found = $TilePhotos.filter(p => p.id == photo.id);
-    if (found.length) { return; } // already selected
-
-    let img = el.children[0];
-    try {
-      smartcrop.crop(img, { width: $TileWidth, height: $TileHeight}).then(function (suggest) {
-        let canvas = document.createElement('canvas');
-        let ctx = canvas.getContext('2d');
-        let cropopts = Object.assign({ enabled: $AutoCrop }, suggest.topCrop);
-        canvas.width = img.width;
-        canvas.height = img.height;
-        ctx.drawImage(img, 0, 0);
-        photo.imageElement = img;
-        photo.imageElement.imaged = new Event('imaged');
-        GetAverageColor(photo, img.src, cropopts);
-        $TilePhotos = [...$TilePhotos, photo]
-      }).catch(function (err) {
-        console.log(photo.id, err);
-      });
-    } catch (e) {
-      console.log('caught image processing error:', e);
-    }
   }
 
   const setTileSizes = function () {
@@ -228,7 +214,7 @@
               {#if loadingTiles}
                 loading...
               {:else}
-                {$TilePhotos.length} tiles
+                {$tiles.length} tiles
               {/if}
             </span>
           </div>
@@ -257,20 +243,26 @@
     </div>
     <div class="column is-2">
       <div class="field">
-        <button on:click|preventDefault={emitNext} class="button is-primary is-large" disabled={!$MainPhotoUrl || $TilePhotos.length < $MinimumTiles}>Generate Background</button>
+        <button on:click|preventDefault={emitNext} class="button is-primary is-large" disabled={!$mainphoto || $tiles.length < $MinimumTiles}>Generate Background</button>
       </div>
 
-      <div class="card">
+      <div class="card is-smaller">
         <header class="card-header">
           <p class="card-header-title">
             Main Photo
           </p>
+
+          {#if $mainphoto}
+            <div class="field mt-2 mr-2">
+              <button on:click|preventDefault={DeselectMainPhoto} class="button is-default is-small">x</button>
+            </div>
+          {/if}
         </header>
 
         <div class="card-content">
           <div class="content">
             {#if $mainphoto}
-              <img bind:this={main} src="{$MainPhotoUrl}" />
+              <ThumbCanvas tile={$mainphoto} width={300} height={300} />
             {:else}
               <article class="message is-primary">
                 <div class="message-body">
@@ -280,11 +272,6 @@
             {/if}
           </div>
         </div>
-        <footer class="card-footer">
-          {#if $mainphoto}
-          <a href="#" on:click|preventDefault={DeselectMainPhoto} class="card-footer-item">Clear Main Photo</a>
-          {/if}
-        </footer>
       </div>
     </div>
   </div>
@@ -293,6 +280,9 @@
 <style>
   .card {
     height: 600px;
+  }
+  .is-smaller {
+    height: 528px;
   }
   .card-content {
     height: 500px;

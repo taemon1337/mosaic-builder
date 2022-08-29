@@ -2,6 +2,7 @@
 import { bmvbhash } from 'blockhash-core';
 
 export const ComputeSimilarity = function (img) {
+  console.log('SIM', img);
   let c = img.getCanvas();
   let ctx = c.getContext('2d');
   let imgData = ctx.getImageData(0, 0, img.width, img.height);

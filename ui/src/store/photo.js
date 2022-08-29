@@ -1,6 +1,6 @@
 import { writable, derived } from 'svelte/store';
 import { Image } from 'image-js';
-import { hash } from '$lib/hashmap.js';
+import { hash } from '$lib/similarity.js';
 
 const PROXY = true;
 
