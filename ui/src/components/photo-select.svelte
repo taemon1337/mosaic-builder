@@ -23,6 +23,8 @@
   let photos = TileStore.photos;
   let tiles = TileStore.tiles;
   let mainphoto = TileStore.mainphoto;
+  let provider = "google-photos";
+  let providers = ["google-photos", "google-images"];
 
   const dispatch = createEventDispatcher();
 
@@ -110,37 +112,47 @@
   const setTileSizes = function () {
     $TileWidth = tilesize;
     $TileHeight = tilesize;
-  }
+  };
 
   const SelectAllPhotos = function () {
     $photos.forEach(p => select(p));
-  }
+  };
 
   const DeselectAllTiles = function () {
     $tiles.forEach(t => unselect(t));
-  }
+  };
 
   const ClearAllPhotos = function () {
     photos.set([]);
-  }
+  };
 
   const DeselectMainPhoto = function () {
     mainphoto.set(null);
-  }
+  };
+
+  const capitalize = function (s) {
+    return s.split(/[ -]/).map((str) => str.charAt(0).toUpperCase() + str.slice(1)).join(' ');
+  };
 
 </script>
 
 <section>
   <div class="columns">
     <div class="column is-2">
-      <PhotoFilter on:change={Filter} />
+      <PhotoFilter provider={provider} on:change={Filter} />
     </div>
     <div class="column is-4">
       <div class="card">
         <header class="card-header">
-          <p class="card-header-title">
-            Google Photos
-          </p>
+          <div class="card-header-title">
+            <div class="select">
+              <select class="select" bind:value={provider}>
+                {#each providers as p}
+                  <option value={p}>{capitalize(p)}</option>
+                {/each}
+              </select>
+            </div>
+          </div>
 
           <div class="select is-small is-rounded mt-2 mr-2">
             <select bind:value={pageSize}>

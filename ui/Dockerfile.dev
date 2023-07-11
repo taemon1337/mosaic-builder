@@ -12,7 +12,7 @@ RUN yarn
 COPY . .
 COPY ./.vimrc /home/node/.vimrc
 
-EXPOSE 3000
+EXPOSE 5173
 EXPOSE 24678
 
 CMD ["yarn", "dev", "--host", "0.0.0.0"]

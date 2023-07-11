@@ -1,0 +1,21 @@
+containers: {
+  server: {
+    build: "./server"
+    env: {
+      if args.dev {
+        FLASK_ENV: "development"
+        VITE_PUBLIC_BASE_PATH: "http://localhost:3000"
+      }
+    }
+    ports: publish: "3000/http"
+  }
+  ui: {
+    build: "./ui"
+    if args.dev {
+      dirs: "./ui": "/usr/src/app"
+    }
+    ports: {
+      publish: "5173/http"
+    }
+  }
+}
